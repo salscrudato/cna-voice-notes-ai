@@ -1,4 +1,5 @@
 import { logger } from '../services/logger'
+import { API } from '../constants'
 import type {
   ApiResponse,
   ErrorDetails,
@@ -21,7 +22,7 @@ const DEFAULT_FORMATTING_OPTIONS: ResponseFormattingOptions = {
   includeMetadata: true,
   formatMarkdown: true,
   maxLength: 10000,
-  timeout: 30000,
+  timeout: API.REQUEST_TIMEOUT_MS,
 }
 
 /**

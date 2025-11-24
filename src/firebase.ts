@@ -4,17 +4,51 @@ import { getAnalytics } from 'firebase/analytics'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: 'AIzaSyArd37qujqzU0Er5GJ6RVcUiFndTA5Dbvk',
-  authDomain: 'generic-voice.firebaseapp.com',
-  projectId: 'generic-voice',
-  storageBucket: 'generic-voice.firebasestorage.app',
-  messagingSenderId: '297339398874',
-  appId: '1:297339398874:web:e6a3d9089ad4c2314913e3',
-  measurementId: 'G-TXQ7DFG0XK',
+/**
+ * Firebase configuration loaded from environment variables
+ * Supports both hardcoded defaults (for generic-voice project) and environment-based config
+ *
+ * Environment variables (optional):
+ * - VITE_FIREBASE_API_KEY
+ * - VITE_FIREBASE_AUTH_DOMAIN
+ * - VITE_FIREBASE_PROJECT_ID
+ * - VITE_FIREBASE_STORAGE_BUCKET
+ * - VITE_FIREBASE_MESSAGING_SENDER_ID
+ * - VITE_FIREBASE_APP_ID
+ * - VITE_FIREBASE_MEASUREMENT_ID
+ */
+function getFirebaseConfig() {
+  // Default configuration for generic-voice project
+  const defaultConfig = {
+    apiKey: 'AIzaSyArd37qujqzU0Er5GJ6RVcUiFndTA5Dbvk',
+    authDomain: 'generic-voice.firebaseapp.com',
+    projectId: 'generic-voice',
+    storageBucket: 'generic-voice.firebasestorage.app',
+    messagingSenderId: '297339398874',
+    appId: '1:297339398874:web:e6a3d9089ad4c2314913e3',
+    measurementId: 'G-TXQ7DFG0XK',
+  }
+
+  // Allow environment variable overrides
+  const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || defaultConfig.apiKey,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || defaultConfig.authDomain,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || defaultConfig.projectId,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || defaultConfig.storageBucket,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || defaultConfig.messagingSenderId,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || defaultConfig.appId,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || defaultConfig.measurementId,
+  }
+
+  // Validate required fields
+  if (!firebaseConfig.projectId) {
+    throw new Error('Firebase projectId is required. Set VITE_FIREBASE_PROJECT_ID or use default configuration.')
+  }
+
+  return firebaseConfig
 }
+
+const firebaseConfig = getFirebaseConfig()
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)

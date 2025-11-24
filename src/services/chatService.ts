@@ -26,6 +26,8 @@ import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatPr
  * - Keeps the API key server-side only
  * - Validates requests before forwarding to OpenAI
  * - Implements rate limiting and authentication
+ *
+ * SECURITY: This provider is development-only. Production deployments MUST use ProxiedChatProvider.
  */
 class OpenAIChatProvider implements IChatProvider {
   private client: OpenAI
@@ -33,9 +35,24 @@ class OpenAIChatProvider implements IChatProvider {
   private circuitBreaker = createApiCircuitBreaker()
 
   constructor(apiKey: string) {
+    // Production-mode guard: prevent dangerouslyAllowBrowser in production
+    if (import.meta.env.MODE === 'production') {
+      logger.error('OpenAI direct provider with dangerouslyAllowBrowser is not allowed in production', {
+        mode: import.meta.env.MODE,
+      })
+      throw new Error(
+        'OpenAI direct provider is not supported in production. ' +
+        'Please configure VITE_CHAT_PROVIDER=proxied and VITE_CHAT_PROXY_URL to use a secure backend proxy.'
+      )
+    }
+
+    logger.warn('Using OpenAI direct provider with dangerouslyAllowBrowser. This is development-only.', {
+      mode: import.meta.env.MODE,
+    })
+
     this.client = new OpenAI({
       apiKey,
-      dangerouslyAllowBrowser: true, // TODO: Replace with backend proxy in production
+      dangerouslyAllowBrowser: true, // Development-only: requires production-mode guard above
     })
   }
 
@@ -221,24 +238,50 @@ class ProxiedChatProvider implements IChatProvider {
 
       if (!response.ok) {
         const errorText = await response.text()
-        // Check if error response is HTML
+        // Check if error response is HTML (common for 5xx errors)
         if (isHtmlResponse(errorText)) {
           const errorMessage = extractErrorFromHtml(errorText)
-          throw new Error(`Proxy error: ${errorMessage}`)
+          logger.error('Proxy returned HTML error response', { status: response.status, errorMessage })
+          throw new Error(`Proxy error (${response.status}): ${errorMessage}`)
         }
-        throw new Error(`Proxy returned ${response.status}: ${errorText}`)
+
+        // Try to parse as JSON error response
+        try {
+          const errorJson = JSON.parse(errorText)
+          const errorMsg = errorJson.error?.message || errorJson.message || errorText
+          logger.error('Proxy returned error response', { status: response.status, error: errorMsg })
+          throw new Error(`Proxy error (${response.status}): ${errorMsg}`)
+        } catch {
+          // If JSON parsing fails, use raw text
+          logger.error('Proxy returned error response', { status: response.status, errorText: errorText.substring(0, 200) })
+          throw new Error(`Proxy returned ${response.status}: ${errorText.substring(0, 200)}`)
+        }
       }
 
-      const data = await response.json()
+      // Parse response JSON with error handling
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        logger.error('Failed to parse proxy response as JSON', { error: parseError })
+        throw new Error('Proxy returned invalid JSON response')
+      }
 
       // Validate response structure
+      if (!data || typeof data !== 'object') {
+        logger.error('Proxy response is not an object', { dataType: typeof data })
+        throw new Error('Invalid response format from proxy: response must be an object')
+      }
+
       if (!data.content || typeof data.content !== 'string') {
+        logger.error('Proxy response missing content field', { hasContent: !!data.content, contentType: typeof data.content })
         throw new Error('Invalid response format from proxy: missing or invalid content field')
       }
 
       // Handle null/undefined content
       const content = handleNullOrUndefinedResponse(data.content)
       if (!content || content.trim().length === 0) {
+        logger.error('Proxy returned empty content', { contentLength: content?.length || 0 })
         throw new Error('Proxy returned empty content')
       }
 
@@ -592,6 +635,22 @@ export class ChatService {
 function initializeChatProvider(): IChatProvider {
   const config = getChatProviderConfig()
 
+  // Production mode: enforce proxied provider
+  if (import.meta.env.MODE === 'production' && config.provider === 'openai-direct') {
+    logger.error('Production mode detected with openai-direct provider. Enforcing proxied provider.', {
+      mode: import.meta.env.MODE,
+      provider: config.provider,
+    })
+    if (!config.proxyUrl) {
+      throw new Error(
+        'Production mode requires VITE_CHAT_PROVIDER=proxied and VITE_CHAT_PROXY_URL to be configured. ' +
+        'Direct OpenAI API key usage is not allowed in production.'
+      )
+    }
+    logger.info('Initializing ProxiedChatProvider (enforced for production)', { proxyUrl: config.proxyUrl })
+    return new ProxiedChatProvider(config.proxyUrl)
+  }
+
   if (config.provider === 'proxied') {
     if (!config.proxyUrl) {
       logger.error('Proxied provider selected but VITE_CHAT_PROXY_URL is not configured')
@@ -601,11 +660,11 @@ function initializeChatProvider(): IChatProvider {
     return new ProxiedChatProvider(config.proxyUrl)
   }
 
-  // Default to OpenAI direct provider
+  // Development mode: allow OpenAI direct provider (with guard in constructor)
   if (!config.openaiApiKey) {
     logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured. Chat functionality will not work until configured.')
   }
-  logger.info('Initializing OpenAIChatProvider', { configured: !!config.openaiApiKey })
+  logger.info('Initializing OpenAIChatProvider (development mode)', { configured: !!config.openaiApiKey })
   return new OpenAIChatProvider(config.openaiApiKey || '')
 }
 

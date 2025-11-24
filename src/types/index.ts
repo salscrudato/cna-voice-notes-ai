@@ -22,17 +22,17 @@ export interface ConversationMetadata {
   brokerCode?: string
 
   // Line of Business (LOB)
-  lob?: string // e.g., "Commercial General Liability", "Property", "Workers Comp"
+  lob?: string // e.g., "commercial_general_liability", "property", "workers_compensation"
 
   // Business Type
-  businessType?: 'new' | 'renewal' | 'modification' | 'cancellation'
+  businessType?: string // e.g., "new_business", "renewal", "modification", "cancellation"
 
   // Client/Account Information
   client?: string
   accountNumber?: string
 
   // Risk Categories
-  riskCategory?: string // e.g., "Manufacturing", "Retail", "Healthcare", "Technology"
+  riskCategory?: string // e.g., "manufacturing", "retail", "healthcare", "technology"
   industry?: string
 
   // Coverage Details
@@ -40,7 +40,7 @@ export interface ConversationMetadata {
   premium?: number
 
   // Underwriting Status
-  underwritingStatus?: 'pending' | 'approved' | 'declined' | 'referred'
+  underwritingStatus?: string // e.g., "pending", "approved", "declined", "referred"
 
   // Additional Tags
   tags?: string[]

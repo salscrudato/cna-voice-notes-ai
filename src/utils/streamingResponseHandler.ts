@@ -1,4 +1,5 @@
 import { logger } from '../services/logger'
+import { API } from '../constants'
 import type { StreamingOptions, ErrorDetails } from '../types'
 import { createStreamingChunk } from './responseFormatter'
 
@@ -23,7 +24,7 @@ export async function handleSSEStream(
   let fullContent = ''
   let chunkCount = 0
   const maxChunks = options.maxChunks || 1000
-  const timeout = options.timeout || 30000
+  const timeout = options.timeout || API.REQUEST_TIMEOUT_MS
   const startTime = Date.now()
 
   try {
@@ -103,7 +104,7 @@ export async function handleChunkedResponse(
   let fullContent = ''
   let chunkCount = 0
   const maxChunks = options.maxChunks || 1000
-  const timeout = options.timeout || 30000
+  const timeout = options.timeout || API.REQUEST_TIMEOUT_MS
   const startTime = Date.now()
 
   try {

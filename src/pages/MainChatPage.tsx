@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { chatService } from '../services/chatService'
+import { voiceNoteService } from '../services/voiceNoteService'
 import { titleGenerationService } from '../services/titleGenerationService'
 import { logger } from '../services/logger'
 import { getApiKeyErrorMessage } from '../services/config'
@@ -13,11 +14,17 @@ import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessages } from '../components/ChatMessages'
 import { ChatInput } from '../components/ChatInput'
 import { UnderwritingFilters } from '../components/UnderwritingFilters'
+import { MetadataInputModal } from '../components/MetadataInputModal'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
-import type { ChatMessage } from '../types'
+import { API } from '../constants'
+import type { ChatMessage, ConversationMetadata } from '../types'
 
 const MainChatPage: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [linkedVoiceNoteName, setLinkedVoiceNoteName] = React.useState<string | undefined>()
+  const [filtersOpen, setFiltersOpen] = React.useState(false)
+  const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
 
   const {
     conversations,
@@ -43,12 +50,12 @@ const MainChatPage: React.FC = () => {
   const {
     filters,
     updateFilters,
+    applyFilters,
   } = useUnderwritingFilters()
 
   const {
     loadConversations,
     loadMessages,
-    handleNewConversation,
     handleSelectConversation,
     initializeChat,
   } = useChatOperations({
@@ -59,18 +66,61 @@ const MainChatPage: React.FC = () => {
     setApiError,
   })
 
+  // Handle voice note navigation: create conversation and link voice note
+  const handleVoiceNoteNavigation = useCallback(async (voiceNoteId: string) => {
+    try {
+      logger.info('Processing voice note navigation', { voiceNoteId })
+
+      // Fetch voice note details
+      const voiceNote = await voiceNoteService.getVoiceNoteById(voiceNoteId)
+      if (!voiceNote) {
+        logger.error('Voice note not found', { voiceNoteId })
+        setApiError('Voice note not found. Please try uploading again.')
+        return
+      }
+
+      // Create a new conversation for this voice note
+      const title = `Voice Note – ${voiceNote.fileName.split('.')[0]}`
+      logger.info('Creating conversation for voice note', { title, voiceNoteId })
+      const conversationId = await chatService.createConversation(title, {
+        tags: ['voice_note'],
+      })
+
+      // Link voice note to conversation
+      await voiceNoteService.linkVoiceNoteToConversation(voiceNoteId, conversationId)
+      logger.info('Voice note linked to conversation', { voiceNoteId, conversationId })
+
+      // Set as current conversation and display voice note name
+      setCurrentConversationId(conversationId)
+      setLinkedVoiceNoteName(voiceNote.fileName)
+      await loadConversations()
+
+      // Clear navigation state to prevent reprocessing on refresh
+      navigate('/chat', { replace: true })
+
+      logger.info('Voice note navigation completed successfully', { conversationId })
+    } catch (error) {
+      logger.error('Error processing voice note navigation', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to process voice note'
+      setApiError(`Error: ${errorMsg}`)
+    }
+  }, [setCurrentConversationId, loadConversations, navigate, setApiError, setLinkedVoiceNoteName])
+
   // Load conversations on mount and handle navigation state
   useEffect(() => {
     initializeChat()
 
-    // If navigated from history with a conversationId, set it as current
-    const navigationState = location.state as { conversationId?: string } | null
+    // Handle navigation state: conversationId or voiceNoteId
+    const navigationState = location.state as { conversationId?: string; voiceNoteId?: string } | null
 
     if (navigationState?.conversationId) {
       setCurrentConversationId(navigationState.conversationId)
       logger.debug('Loaded conversation from navigation state', { conversationId: navigationState.conversationId })
+    } else if (navigationState?.voiceNoteId) {
+      // Handle voice note upload: create new conversation and link voice note
+      handleVoiceNoteNavigation(navigationState.voiceNoteId)
     }
-  }, [initializeChat, location.state, setCurrentConversationId])
+  }, [initializeChat, location.state, setCurrentConversationId, handleVoiceNoteNavigation])
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -137,9 +187,9 @@ const MainChatPage: React.FC = () => {
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       setIsLoading(false)
-      logger.warn('Request timed out after 30 seconds')
+      logger.warn('Request timed out', { timeoutMs: API.REQUEST_TIMEOUT_MS })
       setApiError('Request timed out. Please check your connection and try again.')
-    }, 30000) // 30 second timeout
+    }, API.REQUEST_TIMEOUT_MS)
 
     try {
       logger.info('Sending message to API')
@@ -186,6 +236,28 @@ const MainChatPage: React.FC = () => {
       handleSendMessage()
     }
   }, [handleSendMessage])
+
+  // Wrapper for new conversation that shows metadata modal
+  const handleNewConversationWithMetadata = useCallback(() => {
+    setMetadataModalOpen(true)
+  }, [])
+
+  // Handle metadata submission
+  const handleMetadataSubmit = useCallback(async (metadata: Partial<ConversationMetadata>) => {
+    try {
+      const title = `Chat ${new Date().toLocaleDateString()}`
+      logger.info('Creating new conversation with metadata', { title, hasMetadata: Object.keys(metadata).length > 0 })
+      const conversationId = await chatService.createConversation(title, metadata)
+      setCurrentConversationId(conversationId)
+      setMessages([])
+      await loadConversations()
+      logger.info('New conversation created successfully', { conversationId })
+    } catch (error) {
+      logger.error('Failed to create conversation', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
+      setApiError(`Error creating conversation: ${errorMsg}`)
+    }
+  }, [setCurrentConversationId, setMessages, loadConversations, setApiError])
 
   const handleDeleteConversation = useCallback(async (conversationId: string) => {
     try {
@@ -236,13 +308,18 @@ const MainChatPage: React.FC = () => {
     }
   }, [loadConversations, setApiError, clearError])
 
+  // Apply filters to conversations
+  const filteredConversations = React.useMemo(() => {
+    return applyFilters(conversations)
+  }, [conversations, applyFilters])
+
   return (
     <div className="flex h-screen bg-white">
       <ChatSidebar
         isOpen={sidebarOpen}
-        conversations={conversations}
+        conversations={filteredConversations}
         currentConversationId={currentConversationId}
-        onNewConversation={handleNewConversation}
+        onNewConversation={handleNewConversationWithMetadata}
         onSelectConversation={handleSelectConversation}
         onDeleteConversation={handleDeleteConversation}
         onRenameConversation={handleRenameConversation}
@@ -252,6 +329,8 @@ const MainChatPage: React.FC = () => {
       <UnderwritingFilters
         onFilterChange={updateFilters}
         activeFilters={filters}
+        isOpen={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
       />
 
       <div id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
@@ -259,6 +338,8 @@ const MainChatPage: React.FC = () => {
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}
           currentConversationTitle={conversations.find(c => c.id === currentConversationId)?.title}
+          linkedVoiceNoteName={linkedVoiceNoteName}
+          onOpenFilters={() => setFiltersOpen(true)}
         />
         <ApiErrorBanner error={apiError} onDismiss={clearError} />
 
@@ -274,6 +355,13 @@ const MainChatPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Metadata Input Modal */}
+      <MetadataInputModal
+        isOpen={metadataModalOpen}
+        onClose={() => setMetadataModalOpen(false)}
+        onSubmit={handleMetadataSubmit}
+      />
     </div>
   )
 }

@@ -1,19 +1,21 @@
 import React, { useState, memo } from 'react'
-import { FiChevronDown } from 'react-icons/fi'
+import { FiChevronDown, FiX } from 'react-icons/fi'
+import { FILTER_OPTIONS } from '../constants/filterOptions'
 import type { ConversationMetadata } from '../types'
 
 interface UnderwritingFiltersProps {
   onFilterChange: (filters: Partial<ConversationMetadata>) => void
   activeFilters: Partial<ConversationMetadata>
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-const BROKERS = ['All Brokers', 'Marsh', 'Aon', 'Willis Towers Watson', 'Gallagher', 'Brown & Brown', 'Other']
-const LOBS = ['All LOBs', 'Commercial General Liability', 'Property', 'Workers Compensation', 'Commercial Auto', 'Umbrella', 'Cyber', 'Management Liability']
-const BUSINESS_TYPES = ['All Types', 'New Business', 'Renewal', 'Modification', 'Cancellation']
-const RISK_CATEGORIES = ['All Categories', 'Manufacturing', 'Retail', 'Healthcare', 'Technology', 'Construction', 'Professional Services', 'Hospitality', 'Education']
-const UNDERWRITING_STATUS = ['All Status', 'Pending', 'Approved', 'Declined', 'Referred']
-
-const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFilterChange, activeFilters }) => {
+const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({
+  onFilterChange,
+  activeFilters,
+  isOpen = false,
+  onClose,
+}) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     broker: true,
     lob: true,
@@ -29,15 +31,22 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
     }))
   }
 
+  // Build filter options with "All" prefix for display
+  const brokerOptions = ['All Brokers', ...FILTER_OPTIONS.brokers]
+  const lobOptions = ['All LOBs', ...FILTER_OPTIONS.lobs]
+  const businessTypeOptions = ['All Types', ...FILTER_OPTIONS.businessTypes]
+  const riskCategoryOptions = ['All Categories', ...FILTER_OPTIONS.riskCategories]
+  const statusOptions = ['All Status', ...FILTER_OPTIONS.underwritingStatus]
+
   const handleFilterSelect = (filterType: string, value: string) => {
-    if (value === 'All Brokers' || value === 'All LOBs' || value === 'All Types' || value === 'All Categories' || value === 'All Status') {
+    if (value.startsWith('All ')) {
       const newFilters = { ...activeFilters }
       delete newFilters[filterType as keyof ConversationMetadata]
       onFilterChange(newFilters)
     } else {
       onFilterChange({
         ...activeFilters,
-        [filterType]: value.toLowerCase().replace(/\s+/g, '_'),
+        [filterType]: value,
       })
     }
   }
@@ -48,7 +57,8 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
 
   const hasActiveFilters = Object.keys(activeFilters).length > 0
 
-  return (
+  // Desktop sidebar version
+  const desktopContent = (
     <div className="w-64 bg-white border-r border-slate-200 overflow-y-auto flex flex-col h-full">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-slate-200 p-4 z-10">
@@ -72,7 +82,7 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
           section="broker"
           expanded={expandedSections.broker}
           onToggle={() => toggleSection('broker')}
-          options={BROKERS}
+          options={brokerOptions}
           selectedValue={activeFilters.broker}
           onSelect={(value) => handleFilterSelect('broker', value)}
         />
@@ -83,7 +93,7 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
           section="lob"
           expanded={expandedSections.lob}
           onToggle={() => toggleSection('lob')}
-          options={LOBS}
+          options={lobOptions}
           selectedValue={activeFilters.lob}
           onSelect={(value) => handleFilterSelect('lob', value)}
         />
@@ -94,7 +104,7 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
           section="businessType"
           expanded={expandedSections.businessType}
           onToggle={() => toggleSection('businessType')}
-          options={BUSINESS_TYPES}
+          options={businessTypeOptions}
           selectedValue={activeFilters.businessType}
           onSelect={(value) => handleFilterSelect('businessType', value)}
         />
@@ -105,7 +115,7 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
           section="riskCategory"
           expanded={expandedSections.riskCategory}
           onToggle={() => toggleSection('riskCategory')}
-          options={RISK_CATEGORIES}
+          options={riskCategoryOptions}
           selectedValue={activeFilters.riskCategory}
           onSelect={(value) => handleFilterSelect('riskCategory', value)}
         />
@@ -116,12 +126,125 @@ const UnderwritingFiltersComponent: React.FC<UnderwritingFiltersProps> = ({ onFi
           section="status"
           expanded={expandedSections.status}
           onToggle={() => toggleSection('status')}
-          options={UNDERWRITING_STATUS}
+          options={statusOptions}
           selectedValue={activeFilters.underwritingStatus}
           onSelect={(value) => handleFilterSelect('underwritingStatus', value)}
         />
       </div>
     </div>
+  )
+
+  // Mobile drawer version
+  const mobileDrawer = (
+    <>
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Drawer */}
+      <div
+        className={`fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform transition-transform duration-300 z-50 md:hidden ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Close button */}
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between">
+          <h3 className="font-semibold text-slate-900 text-sm">Filters</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Close filters"
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+
+        {/* Filter content */}
+        <div className="overflow-y-auto h-[calc(100vh-60px)]">
+          {hasActiveFilters && (
+            <div className="p-4 border-b border-slate-200">
+              <button
+                onClick={clearAllFilters}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                aria-label="Clear all filters"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
+
+          {/* Filter Sections */}
+          <FilterSection
+            title="Broker"
+            section="broker"
+            expanded={expandedSections.broker}
+            onToggle={() => toggleSection('broker')}
+            options={brokerOptions}
+            selectedValue={activeFilters.broker}
+            onSelect={(value) => handleFilterSelect('broker', value)}
+          />
+
+          <FilterSection
+            title="Line of Business"
+            section="lob"
+            expanded={expandedSections.lob}
+            onToggle={() => toggleSection('lob')}
+            options={lobOptions}
+            selectedValue={activeFilters.lob}
+            onSelect={(value) => handleFilterSelect('lob', value)}
+          />
+
+          <FilterSection
+            title="Business Type"
+            section="businessType"
+            expanded={expandedSections.businessType}
+            onToggle={() => toggleSection('businessType')}
+            options={businessTypeOptions}
+            selectedValue={activeFilters.businessType}
+            onSelect={(value) => handleFilterSelect('businessType', value)}
+          />
+
+          <FilterSection
+            title="Risk Category"
+            section="riskCategory"
+            expanded={expandedSections.riskCategory}
+            onToggle={() => toggleSection('riskCategory')}
+            options={riskCategoryOptions}
+            selectedValue={activeFilters.riskCategory}
+            onSelect={(value) => handleFilterSelect('riskCategory', value)}
+          />
+
+          <FilterSection
+            title="Underwriting Status"
+            section="status"
+            expanded={expandedSections.status}
+            onToggle={() => toggleSection('status')}
+            options={statusOptions}
+            selectedValue={activeFilters.underwritingStatus}
+            onSelect={(value) => handleFilterSelect('underwritingStatus', value)}
+          />
+        </div>
+      </div>
+    </>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar - hidden on mobile */}
+      <div className="hidden md:flex">
+        {desktopContent}
+      </div>
+
+      {/* Mobile drawer */}
+      <div className="md:hidden">
+        {mobileDrawer}
+      </div>
+    </>
   )
 }
 
