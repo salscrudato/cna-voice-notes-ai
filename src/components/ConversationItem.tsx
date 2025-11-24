@@ -30,8 +30,14 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   }, [isEditing])
 
   const handleRename = () => {
-    if (editValue.trim() && editValue !== conversation.title) {
-      onRename(conversation.id, editValue.trim())
+    const trimmedValue = editValue.trim()
+    if (!trimmedValue) {
+      setEditValue(conversation.title)
+      setIsEditing(false)
+      return
+    }
+    if (trimmedValue !== conversation.title && trimmedValue.length > 0 && trimmedValue.length <= 100) {
+      onRename(conversation.id, trimmedValue)
     }
     setIsEditing(false)
     setEditValue(conversation.title)
@@ -48,6 +54,14 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleRename()
+    } else if (e.key === 'Escape') {
+      handleCancel()
+    }
+  }
+
   if (isEditing) {
     return (
       <div className="w-full px-3 py-2 rounded-lg bg-slate-700/40 border border-blue-500/50 flex items-center gap-2">
@@ -55,13 +69,16 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
           ref={inputRef}
           type="text"
           value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleRename()
-            if (e.key === 'Escape') handleCancel()
+          onChange={(e) => {
+            if (e.target.value.length <= 100) {
+              setEditValue(e.target.value)
+            }
           }}
+          onKeyDown={handleKeyDown}
+          maxLength={100}
           className="flex-1 bg-transparent text-white text-sm outline-none placeholder-slate-400"
           placeholder="Rename conversation..."
+          aria-label="Edit conversation title"
         />
         <button
           onClick={handleRename}
@@ -91,7 +108,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     >
       <button
         onClick={() => onSelect(conversation.id)}
-        className={`w-full text-left px-3 py-3 rounded-lg transition-all duration-200 truncate text-sm font-medium flex items-center gap-2 ${
+        className={`w-full text-left px-2.5 sm:px-3 py-2.5 sm:py-3 rounded-lg transition-all duration-200 truncate text-xs sm:text-sm font-medium flex items-center gap-2 touch-target ${
           isActive
             ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95'
             : 'text-slate-300 hover:bg-slate-700/60 hover:text-slate-100 hover:scale-105 active:scale-95'

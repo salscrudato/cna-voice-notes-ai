@@ -1,4 +1,5 @@
 import { logger } from '../services/logger'
+import { isErrorRetryable } from './errorHandler'
 
 interface RetryOptions {
   maxAttempts?: number
@@ -31,23 +32,24 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
 
-      // Don't retry on client errors (4xx) except 429 (rate limit)
-      if (error instanceof Error) {
-        const message = error.message.toLowerCase()
-        if (message.includes('401') || message.includes('403')) {
-          throw error
-        }
+      // Check if error is retryable using enhanced error handler
+      if (!isErrorRetryable(error)) {
+        logger.debug('Error is not retryable, throwing immediately', { error: lastError.message })
+        throw error
       }
 
       if (attempt < config.maxAttempts) {
         const delay = config.delayMs * Math.pow(config.backoffMultiplier, attempt - 1)
-        logger.debug(`Retry attempt ${attempt}/${config.maxAttempts} after ${delay}ms`, { error: lastError.message })
+        logger.debug(`Retry attempt ${attempt}/${config.maxAttempts} after ${delay}ms`, {
+          error: lastError.message,
+          nextDelay: delay,
+        })
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
   }
 
-  logger.error(`Failed after ${config.maxAttempts} attempts`, lastError)
+  logger.error(`Failed after ${config.maxAttempts} attempts`, { error: lastError?.message })
   throw lastError
 }
 

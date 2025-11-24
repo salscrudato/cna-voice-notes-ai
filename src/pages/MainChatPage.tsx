@@ -1,6 +1,9 @@
 import React, { useEffect, useCallback } from 'react'
+import { useLocation } from 'react-router-dom'
 import { chatService } from '../services/chatService'
 import { logger } from '../services/logger'
+import { getApiKeyErrorMessage } from '../services/config'
+import { generateTitleFromMessage } from '../utils/titleGenerator'
 import { useChatState } from '../hooks/useChatState'
 import { useChatOperations } from '../hooks/useChatOperations'
 import { ChatSidebar } from '../components/ChatSidebar'
@@ -8,8 +11,10 @@ import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessages } from '../components/ChatMessages'
 import { ChatInput } from '../components/ChatInput'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
+import type { ChatMessage } from '../types'
 
 const MainChatPage: React.FC = () => {
+  const location = useLocation()
   const {
     conversations,
     currentConversationId,
@@ -45,10 +50,17 @@ const MainChatPage: React.FC = () => {
     setApiError,
   })
 
-  // Load conversations on mount
+  // Load conversations on mount and handle navigation state
   useEffect(() => {
     initializeChat()
-  }, [initializeChat])
+
+    // If navigated from history with a conversationId, set it as current
+    const navigationState = location.state as { conversationId?: string } | null
+    if (navigationState?.conversationId) {
+      setCurrentConversationId(navigationState.conversationId)
+      logger.debug('Loaded conversation from navigation state', { conversationId: navigationState.conversationId })
+    }
+  }, [initializeChat, location.state, setCurrentConversationId])
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -58,17 +70,25 @@ const MainChatPage: React.FC = () => {
   }, [currentConversationId, loadMessages])
 
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim()) {
+    const trimmedMessage = inputValue.trim()
+
+    // Validate input
+    if (!trimmedMessage) {
+      return
+    }
+
+    if (trimmedMessage.length > 4000) {
+      setApiError('Message is too long. Maximum 4000 characters allowed.')
       return
     }
 
     // Check if API key is configured
     if (isApiKeyMissing) {
-      alert('❌ OpenAI API key is not configured.\n\n1. Copy .env.example to .env.local\n2. Add your API key from https://platform.openai.com/api-keys\n3. Restart the dev server')
+      setApiError(getApiKeyErrorMessage())
       return
     }
 
-    const userMessage = inputValue
+    const userMessage = trimmedMessage
     logger.info('Sending message', { length: userMessage.length })
     resetInput()
 
@@ -76,7 +96,8 @@ const MainChatPage: React.FC = () => {
     let convId = currentConversationId
     if (!convId) {
       try {
-        const title = userMessage.substring(0, 50) || `Chat ${new Date().toLocaleDateString()}`
+        // Use better title generation from first message
+        const title = generateTitleFromMessage(userMessage)
         logger.info('Creating new conversation', { title })
         convId = await chatService.createConversation(title)
         logger.info('Conversation created', { id: convId })
@@ -84,28 +105,45 @@ const MainChatPage: React.FC = () => {
         await loadConversations()
       } catch (error) {
         logger.error('Failed to create conversation', error)
-        alert('Failed to create conversation')
+        const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
+        setApiError(`Failed to create conversation: ${errorMsg}`)
         return
       }
     }
 
     setIsLoading(true)
+    clearError()
+
+    // Optimistically add user message to UI
+    const optimisticUserMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      conversationId: convId,
+      role: 'user',
+      content: userMessage,
+      createdAt: new Date(),
+    }
+    setMessages(prev => [...prev, optimisticUserMessage])
 
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       setIsLoading(false)
       logger.warn('Request timed out after 30 seconds')
-      alert('Request timed out. Please check your API key and try again.')
+      setApiError('Request timed out. Please check your connection and try again.')
     }, 30000) // 30 second timeout
 
     try {
       logger.info('Sending message to API')
       const assistantResponse = await chatService.sendMessage(convId, userMessage)
       clearTimeout(timeoutId)
+
+      if (!assistantResponse || assistantResponse.trim().length === 0) {
+        throw new Error('Received empty response from AI')
+      }
+
       logger.info('API response received', { length: assistantResponse.length })
       clearError()
 
-      // Reload messages from Firestore to get the persisted versions
+      // Reload messages from Firestore to get the persisted versions with real IDs
       logger.debug('Reloading messages from Firestore')
       await loadMessages(convId)
       logger.info('Messages reloaded successfully')
@@ -113,22 +151,13 @@ const MainChatPage: React.FC = () => {
       clearTimeout(timeoutId)
       logger.error('Failed to send message', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to send message'
-      setApiError(errorMsg)
-
-      // Show detailed error info
-      if (errorMsg.includes('API key')) {
-        alert('API Key Error: ' + errorMsg + '\n\nPlease check your VITE_OPENAI_API_KEY environment variable.')
-      } else if (errorMsg.includes('401')) {
-        alert('Authentication Error: Invalid API key')
-      } else if (errorMsg.includes('429')) {
-        alert('Rate Limited: Too many requests. Please wait a moment and try again.')
-      } else {
-        alert(`Error: ${errorMsg}`)
-      }
+      setApiError(`Error: ${errorMsg}`)
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticUserMessage.id))
     } finally {
       setIsLoading(false)
     }
-  }, [inputValue, currentConversationId, loadConversations, loadMessages, isApiKeyMissing, resetInput, clearError, setCurrentConversationId, setIsLoading, setApiError])
+  }, [inputValue, currentConversationId, loadConversations, loadMessages, isApiKeyMissing, resetInput, clearError, setCurrentConversationId, setIsLoading, setApiError, setMessages])
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -153,23 +182,38 @@ const MainChatPage: React.FC = () => {
       logger.info('Conversation deleted successfully')
     } catch (error) {
       logger.error('Failed to delete conversation', error)
-      alert('Failed to delete conversation')
+      const errorMsg = error instanceof Error ? error.message : 'Failed to delete conversation'
+      setApiError(`Failed to delete conversation: ${errorMsg}`)
     }
-  }, [currentConversationId, setCurrentConversationId, setMessages, loadConversations])
+  }, [currentConversationId, setCurrentConversationId, setMessages, loadConversations, setApiError])
 
   const handleRenameConversation = useCallback(async (conversationId: string, newTitle: string) => {
+    const trimmedTitle = newTitle.trim()
+
+    if (!trimmedTitle || trimmedTitle.length === 0) {
+      setApiError('Conversation title cannot be empty')
+      return
+    }
+
+    if (trimmedTitle.length > 100) {
+      setApiError('Conversation title must be 100 characters or less')
+      return
+    }
+
     try {
-      logger.info('Renaming conversation', { conversationId, newTitle })
-      await chatService.updateConversationTitle(conversationId, newTitle)
+      logger.info('Renaming conversation', { conversationId, newTitle: trimmedTitle })
+      await chatService.updateConversationTitle(conversationId, trimmedTitle)
 
       // Reload conversations to reflect the change
       await loadConversations()
       logger.info('Conversation renamed successfully')
+      clearError()
     } catch (error) {
       logger.error('Failed to rename conversation', error)
-      alert('Failed to rename conversation')
+      const errorMsg = error instanceof Error ? error.message : 'Failed to rename conversation'
+      setApiError(`Failed to rename conversation: ${errorMsg}`)
     }
-  }, [loadConversations])
+  }, [loadConversations, setApiError, clearError])
 
   return (
     <div className="flex h-screen bg-white">
@@ -183,9 +227,13 @@ const MainChatPage: React.FC = () => {
         onRenameConversation={handleRenameConversation}
       />
 
-      <div className="flex-1 flex flex-col">
-        <ChatHeader sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
-        <ApiErrorBanner error={apiError} />
+      <div id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
+        <ChatHeader
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={toggleSidebar}
+          currentConversationTitle={conversations.find(c => c.id === currentConversationId)?.title}
+        />
+        <ApiErrorBanner error={apiError} onDismiss={clearError} />
         <ChatMessages messages={messages} isLoading={isLoading} />
         <ChatInput
           value={inputValue}

@@ -1,11 +1,13 @@
 import { useCallback } from 'react'
 import { chatService } from '../services/chatService'
 import { logger } from '../services/logger'
+import { isOpenAIConfigured, getApiKeyErrorMessage } from '../services/config'
+import type { Conversation, ChatMessage } from '../types'
 
 interface UseChatOperationsProps {
-  setConversations: (convs: any[]) => void
+  setConversations: (convs: Conversation[]) => void
   setCurrentConversationId: (id: string | null) => void
-  setMessages: (msgs: any[]) => void
+  setMessages: (msgs: ChatMessage[]) => void
   setIsApiKeyMissing: (missing: boolean) => void
   setApiError: (error: string | undefined) => void
 }
@@ -55,11 +57,11 @@ export const useChatOperations = ({
 
   const initializeChat = useCallback(async () => {
     try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-      if (!apiKey) {
+      // Check if OpenAI API key is configured
+      if (!isOpenAIConfigured()) {
         logger.warn('OpenAI API key is not configured')
         setIsApiKeyMissing(true)
-        setApiError('⚠️ OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in .env.local')
+        setApiError(getApiKeyErrorMessage())
       }
 
       const convs = await chatService.getAllConversations()

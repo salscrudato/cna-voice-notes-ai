@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { SkipToContent } from './components/SkipToContent'
 import { LandingPage } from './pages/LandingPage'
 
 // Lazy load pages for better code splitting
@@ -22,6 +23,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
+        <SkipToContent />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<LandingPage />} />

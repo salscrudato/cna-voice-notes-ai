@@ -1,7 +1,7 @@
-import React, { useMemo, memo } from 'react'
+import React, { useMemo, memo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Conversation } from '../types'
-import { FiPlus, FiClock, FiUploadCloud, FiHome } from 'react-icons/fi'
+import { FiPlus, FiClock, FiUploadCloud, FiHome, FiSearch, FiX } from 'react-icons/fi'
 import { ConversationItem } from './ConversationItem'
 
 interface ChatSidebarProps {
@@ -24,20 +24,56 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
   onRenameConversation,
 }) => {
   const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Group conversations by date
+  const groupedConversations = useMemo(() => {
+    const filtered = conversations.filter(conv =>
+      conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    const groups: Record<string, Conversation[]> = {}
+    const now = new Date()
+
+    filtered.forEach(conv => {
+      const convDate = new Date(conv.createdAt || 0)
+      const daysDiff = Math.floor((now.getTime() - convDate.getTime()) / (1000 * 60 * 60 * 24))
+
+      let groupKey = 'Older'
+      if (daysDiff === 0) groupKey = 'Today'
+      else if (daysDiff === 1) groupKey = 'Yesterday'
+      else if (daysDiff < 7) groupKey = 'This Week'
+      else if (daysDiff < 30) groupKey = 'This Month'
+
+      if (!groups[groupKey]) groups[groupKey] = []
+      groups[groupKey].push(conv)
+    })
+
+    return groups
+  }, [conversations, searchQuery])
 
   const conversationsList = useMemo(
     () =>
-      conversations.map((conv) => (
-        <ConversationItem
-          key={conv.id}
-          conversation={conv}
-          isActive={currentConversationId === conv.id}
-          onSelect={onSelectConversation}
-          onDelete={onDeleteConversation}
-          onRename={onRenameConversation}
-        />
+      Object.entries(groupedConversations).map(([groupName, convs]) => (
+        <div key={groupName}>
+          <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            {groupName}
+          </div>
+          <div className="space-y-1">
+            {convs.map((conv) => (
+              <ConversationItem
+                key={conv.id}
+                conversation={conv}
+                isActive={currentConversationId === conv.id}
+                onSelect={onSelectConversation}
+                onDelete={onDeleteConversation}
+                onRename={onRenameConversation}
+              />
+            ))}
+          </div>
+        </div>
       )),
-    [conversations, currentConversationId, onSelectConversation, onDeleteConversation, onRenameConversation]
+    [groupedConversations, currentConversationId, onSelectConversation, onDeleteConversation, onRenameConversation]
   )
 
   return (
@@ -45,7 +81,7 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
       id="chat-sidebar"
       className={`${
         isOpen ? 'w-64' : 'w-0'
-      } bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white transition-all duration-300 flex flex-col overflow-hidden shadow-2xl border-r border-slate-700/50`}
+      } bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white transition-all duration-300 flex flex-col overflow-hidden shadow-2xl border-r border-slate-700/50 fixed sm:relative h-screen sm:h-auto z-40 sm:z-auto`}
       aria-label="Chat history sidebar"
     >
       {/* Logo & Branding */}
@@ -66,10 +102,37 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
         </button>
       </div>
 
+      {/* Search Bar */}
+      <div className="px-2 sm:px-3 py-2 border-b border-slate-700/50">
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} aria-hidden="true" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-8 py-2.5 sm:py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            aria-label="Search conversations"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-700/50 rounded transition-colors text-slate-400 hover:text-slate-200"
+              aria-label="Clear search"
+              type="button"
+            >
+              <FiX size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Chat History */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {conversations.length === 0 ? (
           <p className="text-slate-500 text-xs p-3 text-center">No conversations yet</p>
+        ) : Object.keys(groupedConversations).length === 0 ? (
+          <p className="text-slate-500 text-xs p-3 text-center">No conversations found</p>
         ) : (
           conversationsList
         )}
