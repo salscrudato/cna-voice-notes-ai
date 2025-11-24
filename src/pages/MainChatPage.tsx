@@ -6,10 +6,12 @@ import { getApiKeyErrorMessage } from '../services/config'
 import { generateTitleFromMessage } from '../utils/titleGenerator'
 import { useChatState } from '../hooks/useChatState'
 import { useChatOperations } from '../hooks/useChatOperations'
+import { useUnderwritingFilters } from '../hooks/useUnderwritingFilters'
 import { ChatSidebar } from '../components/ChatSidebar'
 import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessages } from '../components/ChatMessages'
 import { ChatInput } from '../components/ChatInput'
+import { UnderwritingFilters } from '../components/UnderwritingFilters'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
 import type { ChatMessage } from '../types'
 
@@ -36,6 +38,11 @@ const MainChatPage: React.FC = () => {
     clearError,
     toggleSidebar,
   } = useChatState()
+
+  const {
+    filters,
+    updateFilters,
+  } = useUnderwritingFilters()
 
   const {
     loadConversations,
@@ -229,6 +236,12 @@ const MainChatPage: React.FC = () => {
         onRenameConversation={handleRenameConversation}
       />
 
+      {/* Underwriting Filters Panel */}
+      <UnderwritingFilters
+        onFilterChange={updateFilters}
+        activeFilters={filters}
+      />
+
       <div id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
         <ChatHeader
           sidebarOpen={sidebarOpen}
@@ -236,14 +249,18 @@ const MainChatPage: React.FC = () => {
           currentConversationTitle={conversations.find(c => c.id === currentConversationId)?.title}
         />
         <ApiErrorBanner error={apiError} onDismiss={clearError} />
-        <ChatMessages messages={messages} isLoading={isLoading} />
-        <ChatInput
-          value={inputValue}
-          onChange={setInputValue}
-          onKeyPress={handleKeyPress}
-          onSend={handleSendMessage}
-          isLoading={isLoading}
-        />
+
+        {/* Chat container - clean, focused layout */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <ChatMessages messages={messages} isLoading={isLoading} />
+          <ChatInput
+            value={inputValue}
+            onChange={setInputValue}
+            onKeyPress={handleKeyPress}
+            onSend={handleSendMessage}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
     </div>
   )

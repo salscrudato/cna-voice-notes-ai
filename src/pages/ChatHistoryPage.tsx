@@ -67,39 +67,39 @@ const ChatHistoryPage: React.FC = () => {
   )
 
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-white to-slate-50">
       {/* Header */}
-      <div className="border-b border-slate-200/50 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white via-white to-slate-50/50 backdrop-blur-md shadow-sm">
+      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
           <button
             onClick={() => navigate('/chat')}
-            className="p-2.5 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-700 hover:text-slate-900 hover:scale-110 active:scale-95 font-medium flex-shrink-0"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-700 hover:text-slate-900 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
             aria-label="Go back to chat"
           >
             <FiArrowLeft size={20} />
           </button>
-          <h1 className="text-lg sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-            <FiBook size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
+            <FiBook size={20} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
             <span className="truncate">Chat History</span>
           </h1>
         </div>
         {/* Search Bar */}
         <div className="relative">
-          <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" size={18} aria-hidden="true" />
+          <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" size={16} aria-hidden="true" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm transition-all duration-200 hover:shadow-sm hover:border-slate-300 focus:shadow-md font-medium"
+            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400"
             aria-label="Search conversations"
           />
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gradient-to-b from-white via-slate-50 to-slate-100">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-5xl mx-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center animate-fade-in">
@@ -110,38 +110,46 @@ const ChatHistoryPage: React.FC = () => {
           ) : filteredConversations.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center animate-fade-in">
-                <div className="w-16 h-16 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                  <FiMessageSquare size={32} className="text-slate-400" />
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-4 shadow-md">
+                  <FiMessageSquare size={32} className="text-blue-600" />
                 </div>
                 <p className="text-slate-600 text-lg font-semibold">{searchQuery ? 'No conversations found' : 'No conversations yet'}</p>
                 <p className="text-slate-500 text-sm mt-2">{searchQuery ? 'Try a different search' : 'Start a new chat to begin'}</p>
               </div>
             </div>
           ) : (
-            <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-3">
               {filteredConversations.map((conv) => (
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv.id)}
-                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-400 hover:shadow-xl transition-all duration-200 cursor-pointer group animate-fade-in hover:scale-105 active:scale-95 hover:-translate-y-1"
+                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-0.5 focus-visible-ring"
                 >
-                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
-                        <FiMessageSquare size={16} className="text-blue-600 flex-shrink-0 sm:w-[18px] sm:h-[18px]" aria-hidden="true" />
+                      <h3 className="font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
+                        <FiMessageSquare size={16} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">{conv.title}</span>
                       </h3>
-                      <div className="flex items-center gap-2 mt-2 sm:mt-2.5 text-xs sm:text-sm text-slate-500 group-hover:text-slate-600 transition-colors font-medium">
-                        <FiClock size={12} className="flex-shrink-0 sm:w-[14px] sm:h-[14px]" aria-hidden="true" />
-                        <span>{formatDate(conv.createdAt)}</span>
+                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-600 transition-colors">
+                        <div className="flex items-center gap-1">
+                          <FiClock size={14} className="flex-shrink-0" aria-hidden="true" />
+                          <span>{formatDate(conv.createdAt)}</span>
+                        </div>
+                        <div className="w-1 h-1 bg-slate-300 rounded-full" aria-hidden="true" />
+                        <div className="flex items-center gap-1">
+                          <FiMessageSquare size={14} className="flex-shrink-0" aria-hidden="true" />
+                          <span>{conv.messageCount} message{conv.messageCount !== 1 ? 's' : ''}</span>
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}
-                      className="p-2 sm:p-2.5 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0"
+                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0"
                       aria-label="Delete conversation"
+                      type="button"
                     >
-                      <FiTrash2 size={16} className="text-red-500 transition-transform sm:w-[18px] sm:h-[18px]" />
+                      <FiTrash2 size={16} className="text-red-500 dark:text-red-400 transition-transform sm:w-[18px] sm:h-[18px]" />
                     </button>
                   </div>
                 </div>

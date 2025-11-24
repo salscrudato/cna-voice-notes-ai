@@ -9,10 +9,10 @@ interface ChatHeaderProps {
 
 const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({ sidebarOpen, onToggleSidebar, currentConversationTitle }) => {
   return (
-    <div className="border-b border-slate-200/30 px-3 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="border-b border-slate-200 px-3 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
       <button
         onClick={onToggleSidebar}
-        className="p-2 hover:bg-slate-100/80 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900 hover:scale-110 active:scale-95 font-medium touch-target"
+        className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900 hover:scale-110 active:scale-95 focus-visible-ring"
         aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
         aria-expanded={sidebarOpen}
         aria-controls="chat-sidebar"
@@ -23,21 +23,19 @@ const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({ sidebarOpen, onToggleS
 
       {/* Breadcrumb Navigation */}
       <div className="flex-1 flex items-center gap-2 px-4">
-        <div className="flex items-center gap-2.5">
-          <FiMessageCircle size={22} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
-          <span className="hidden sm:inline text-base font-semibold text-slate-900">Chat</span>
+        <div className="flex items-center gap-2">
+          <FiMessageCircle size={20} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+          <span className="hidden sm:inline text-sm font-semibold text-slate-900">Chat</span>
         </div>
         {currentConversationTitle && (
           <>
-            <span className="text-slate-400 hidden sm:inline">/</span>
-            <span className="text-sm sm:text-base font-medium text-slate-600 truncate hidden sm:inline">
+            <span className="text-slate-300 hidden sm:inline">/</span>
+            <span className="text-xs sm:text-sm font-medium text-slate-600 truncate hidden sm:inline">
               {currentConversationTitle}
             </span>
           </>
         )}
       </div>
-
-      <div className="w-10" />
     </div>
   )
 }

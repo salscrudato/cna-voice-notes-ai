@@ -1,35 +1,28 @@
 import React, { useEffect } from 'react'
 import type { ReactNode } from 'react'
-import { useTheme } from '../hooks/useTheme'
 
 interface LayoutShellProps {
   children: ReactNode
 }
 
 /**
- * Global layout shell that handles theme initialization and applies global styles
+ * Global layout shell that applies global styles
  * Should wrap the entire application
  */
 const LayoutShellComponent: React.FC<LayoutShellProps> = ({ children }) => {
-  const { effectiveTheme } = useTheme()
-
-  // Ensure theme is applied on mount
+  // Ensure light theme is applied on mount
   useEffect(() => {
     const htmlElement = document.documentElement
-    if (effectiveTheme === 'dark') {
-      htmlElement.classList.add('dark')
-    } else {
-      htmlElement.classList.remove('dark')
-    }
-  }, [effectiveTheme])
+    htmlElement.classList.remove('dark')
+  }, [])
 
   return (
-    <div className={`${effectiveTheme === 'dark' ? 'dark' : ''}`}>
+    <div>
       <style>{`
         :root {
-          color-scheme: ${effectiveTheme};
+          color-scheme: light;
         }
-        
+
         @media (prefers-reduced-motion: reduce) {
           * {
             animation-duration: 0.01ms !important;

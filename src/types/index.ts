@@ -15,6 +15,40 @@ export interface ChatMessage {
   createdAt: Date
 }
 
+/** Metadata for filtering conversations */
+export interface ConversationMetadata {
+  // Broker Information
+  broker?: string
+  brokerCode?: string
+
+  // Line of Business (LOB)
+  lob?: string // e.g., "Commercial General Liability", "Property", "Workers Comp"
+
+  // Business Type
+  businessType?: 'new' | 'renewal' | 'modification' | 'cancellation'
+
+  // Client/Account Information
+  client?: string
+  accountNumber?: string
+
+  // Risk Categories
+  riskCategory?: string // e.g., "Manufacturing", "Retail", "Healthcare", "Technology"
+  industry?: string
+
+  // Coverage Details
+  coverageType?: string
+  premium?: number
+
+  // Underwriting Status
+  underwritingStatus?: 'pending' | 'approved' | 'declined' | 'referred'
+
+  // Additional Tags
+  tags?: string[]
+
+  // Generic key-value storage
+  [key: string]: string | string[] | number | boolean | undefined
+}
+
 /** A conversation/chat session */
 export interface Conversation {
   id: string
@@ -22,6 +56,7 @@ export interface Conversation {
   createdAt: Date
   updatedAt: Date
   messageCount: number
+  metadata?: ConversationMetadata
 }
 
 /** Input format for sending messages to the API */
@@ -116,6 +151,64 @@ export interface ResponseFormattingOptions {
   formatMarkdown: boolean
   maxLength?: number
   timeout?: number
+}
+
+/** Streaming response chunk */
+export interface StreamingChunk {
+  id: string
+  timestamp: Date
+  content: string
+  isComplete: boolean
+  error?: ErrorDetails
+}
+
+/** Streaming response handler options */
+export interface StreamingOptions {
+  onChunk?: (chunk: StreamingChunk) => void
+  onComplete?: (fullContent: string) => void
+  onError?: (error: ErrorDetails) => void
+  timeout?: number
+  maxChunks?: number
+}
+
+/** Response cache entry */
+export interface CacheEntry<T> {
+  data: T
+  timestamp: Date
+  ttl: number // milliseconds
+  hits: number
+}
+
+/** Circuit breaker state */
+export type CircuitBreakerState = 'closed' | 'open' | 'half-open'
+
+/** Circuit breaker configuration */
+export interface CircuitBreakerConfig {
+  failureThreshold: number // number of failures before opening
+  successThreshold: number // number of successes to close from half-open
+  timeout: number // milliseconds before attempting half-open
+  monitoringWindow: number // milliseconds to track failures
+}
+
+/** Circuit breaker status */
+export interface CircuitBreakerStatus {
+  state: CircuitBreakerState
+  failureCount: number
+  successCount: number
+  lastFailureTime?: Date
+  nextAttemptTime?: Date
+}
+
+/** Comprehensive response envelope with additional metadata */
+export interface EnhancedApiResponse<T = unknown> extends ApiResponse<T> {
+  cached?: boolean
+  streaming?: boolean
+  partial?: boolean
+  retryInfo?: {
+    attempt: number
+    maxAttempts: number
+    nextRetryTime?: Date
+  }
 }
 
 /** Voice note status */

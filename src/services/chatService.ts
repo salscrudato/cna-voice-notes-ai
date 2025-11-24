@@ -10,8 +10,12 @@ import {
   validateResponse,
   createMetadata,
   parseError,
+  handleNullOrUndefinedResponse,
+  isHtmlResponse,
+  extractErrorFromHtml,
 } from '../utils/responseFormatter'
-import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatProviderMetadata } from '../types'
+import { createApiCircuitBreaker } from '../utils/circuitBreaker'
+import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatProviderMetadata, ConversationMetadata } from '../types'
 
 /**
  * OpenAI chat provider implementation
@@ -26,6 +30,7 @@ import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatPr
 class OpenAIChatProvider implements IChatProvider {
   private client: OpenAI
   private apiConfig = getAPIConfig()
+  private circuitBreaker = createApiCircuitBreaker()
 
   constructor(apiKey: string) {
     this.client = new OpenAI({
@@ -64,25 +69,36 @@ class OpenAIChatProvider implements IChatProvider {
         finalMessages = [systemMessage, ...messagesToSend]
       }
 
-      const response = await retryWithBackoff(
-        () =>
-          this.client.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: finalMessages as OpenAI.Chat.ChatCompletionMessageParam[],
-            temperature: 0.7,
-            max_tokens: 1000,
-          }),
-        {
-          maxAttempts: this.apiConfig.maxRetries,
-          delayMs: this.apiConfig.retryDelay,
-          backoffMultiplier: this.apiConfig.backoffMultiplier,
-        }
+      // Execute with circuit breaker protection
+      const response = await this.circuitBreaker.execute(() =>
+        retryWithBackoff(
+          () =>
+            this.client.chat.completions.create({
+              model: 'gpt-4o-mini',
+              messages: finalMessages as OpenAI.Chat.ChatCompletionMessageParam[],
+              temperature: 0.7,
+              max_tokens: 1000,
+            }),
+          {
+            maxAttempts: this.apiConfig.maxRetries,
+            delayMs: this.apiConfig.retryDelay,
+            backoffMultiplier: this.apiConfig.backoffMultiplier,
+          }
+        )
       )
 
       // Extract and validate response content
-      const rawContent = response.choices[0]?.message?.content
-      if (!rawContent) {
+      let rawContent = response.choices[0]?.message?.content
+      rawContent = handleNullOrUndefinedResponse(rawContent)
+
+      if (!rawContent || rawContent.trim().length === 0) {
         throw new Error('No response content from OpenAI API')
+      }
+
+      // Check for HTML error responses
+      if (isHtmlResponse(rawContent)) {
+        const errorMessage = extractErrorFromHtml(rawContent)
+        throw new Error(`Server returned error: ${errorMessage}`)
       }
 
       // Validate response
@@ -163,6 +179,7 @@ class OpenAIChatProvider implements IChatProvider {
 class ProxiedChatProvider implements IChatProvider {
   private proxyUrl: string
   private apiConfig = getAPIConfig()
+  private circuitBreaker = createApiCircuitBreaker()
 
   constructor(proxyUrl: string) {
     if (!proxyUrl) {
@@ -183,24 +200,32 @@ class ProxiedChatProvider implements IChatProvider {
 
       logger.debug('Sending request to proxy', { url: this.proxyUrl, messageCount: messages.length })
 
-      const response = await retryWithBackoff(
-        () =>
-          fetch(this.proxyUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-          }),
-        {
-          maxAttempts: this.apiConfig.maxRetries,
-          delayMs: this.apiConfig.retryDelay,
-          backoffMultiplier: this.apiConfig.backoffMultiplier,
-        }
+      // Execute with circuit breaker protection
+      const response = await this.circuitBreaker.execute(() =>
+        retryWithBackoff(
+          () =>
+            fetch(this.proxyUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            }),
+          {
+            maxAttempts: this.apiConfig.maxRetries,
+            delayMs: this.apiConfig.retryDelay,
+            backoffMultiplier: this.apiConfig.backoffMultiplier,
+          }
+        )
       )
 
       if (!response.ok) {
         const errorText = await response.text()
+        // Check if error response is HTML
+        if (isHtmlResponse(errorText)) {
+          const errorMessage = extractErrorFromHtml(errorText)
+          throw new Error(`Proxy error: ${errorMessage}`)
+        }
         throw new Error(`Proxy returned ${response.status}: ${errorText}`)
       }
 
@@ -211,8 +236,14 @@ class ProxiedChatProvider implements IChatProvider {
         throw new Error('Invalid response format from proxy: missing or invalid content field')
       }
 
+      // Handle null/undefined content
+      const content = handleNullOrUndefinedResponse(data.content)
+      if (!content || content.trim().length === 0) {
+        throw new Error('Proxy returned empty content')
+      }
+
       // Validate response
-      const validation = validateResponse(data.content)
+      const validation = validateResponse(content)
       if (!validation.isValid) {
         logger.error('Response validation failed', { errors: validation.errors })
         throw new Error(`Invalid response: ${validation.errors.join(', ')}`)
@@ -226,7 +257,7 @@ class ProxiedChatProvider implements IChatProvider {
         total: data.tokensUsed?.total || 0,
       })
 
-      const formattedResponse = formatChatResponse(data.content, responseMetadata, {
+      const formattedResponse = formatChatResponse(content, responseMetadata, {
         sanitize: true,
         validateSchema: true,
         includeMetadata: true,
@@ -286,15 +317,16 @@ class FirestoreChatManager {
   private conversationsCollection = 'conversations'
   private messagesCollection = 'messages'
 
-  async createConversation(title: string): Promise<string> {
+  async createConversation(title: string, metadata?: ConversationMetadata): Promise<string> {
     try {
-      logger.info('Creating conversation', { title })
+      logger.info('Creating conversation', { title, hasMetadata: !!metadata })
 
       const docRef = await addDoc(collection(db, this.conversationsCollection), {
         title,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         messageCount: 0,
+        ...(metadata && { metadata }),
       })
 
       logger.info('Conversation created', { id: docRef.id })
@@ -388,6 +420,7 @@ class FirestoreChatManager {
           createdAt,
           updatedAt,
           messageCount: typeof data.messageCount === 'number' ? data.messageCount : 0,
+          metadata: data.metadata,
         }
       })
     } catch (error) {
@@ -460,6 +493,22 @@ class FirestoreChatManager {
       throw error
     }
   }
+
+  async updateConversationMetadata(conversationId: string, metadata: ConversationMetadata): Promise<void> {
+    try {
+      logger.info('Updating conversation metadata', { conversationId })
+
+      await updateDoc(doc(db, this.conversationsCollection, conversationId), {
+        metadata,
+        updatedAt: Timestamp.now(),
+      })
+
+      logger.info('Conversation metadata updated', { conversationId })
+    } catch (error) {
+      logger.error('Error updating conversation metadata', error)
+      throw error
+    }
+  }
 }
 
 // Main chat service
@@ -506,8 +555,8 @@ export class ChatService {
     }
   }
 
-  async createConversation(title: string): Promise<string> {
-    return this.firestoreManager.createConversation(title)
+  async createConversation(title: string, metadata?: ConversationMetadata): Promise<string> {
+    return this.firestoreManager.createConversation(title, metadata)
   }
 
   async getConversationMessages(conversationId: string): Promise<ChatMessage[]> {
@@ -528,6 +577,10 @@ export class ChatService {
 
   async updateConversationTitle(conversationId: string, newTitle: string): Promise<void> {
     return this.firestoreManager.updateConversationTitle(conversationId, newTitle)
+  }
+
+  async updateConversationMetadata(conversationId: string, metadata: ConversationMetadata): Promise<void> {
+    return this.firestoreManager.updateConversationMetadata(conversationId, metadata)
   }
 
   setProvider(provider: IChatProvider): void {

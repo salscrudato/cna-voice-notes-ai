@@ -222,3 +222,174 @@ export function getRetryStrategy(error: unknown): ErrorRecoveryStrategy {
   return strategy
 }
 
+/**
+ * Enhanced error categorization with more granular types
+ */
+export interface EnhancedErrorDetails {
+  code: string
+  message: string
+  category: 'client' | 'server' | 'network' | 'timeout' | 'validation' | 'rate_limit' | 'auth' | 'unknown'
+  statusCode?: number
+  retryable: boolean
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  suggestedAction: string
+  originalError?: unknown
+}
+
+/**
+ * Categorize error with enhanced details
+ */
+export function categorizeErrorEnhanced(error: unknown): EnhancedErrorDetails {
+  const message = error instanceof Error ? error.message : String(error)
+  const lowerMessage = message.toLowerCase()
+
+  let category: EnhancedErrorDetails['category'] = 'unknown'
+  let statusCode: number | undefined
+  let severity: EnhancedErrorDetails['severity'] = 'medium'
+  let suggestedAction = 'Please try again.'
+  let retryable = true
+
+  // Rate limit errors (429)
+  if (lowerMessage.includes('429') || lowerMessage.includes('rate') || lowerMessage.includes('too many requests')) {
+    category = 'rate_limit'
+    statusCode = 429
+    severity = 'high'
+    retryable = true
+    suggestedAction = 'Please wait a moment before trying again. The service is experiencing high demand.'
+  }
+  // Authentication errors (401)
+  else if (lowerMessage.includes('401') || lowerMessage.includes('unauthorized') || lowerMessage.includes('unauthenticated')) {
+    category = 'auth'
+    statusCode = 401
+    severity = 'critical'
+    retryable = false
+    suggestedAction = 'Please check your API key or credentials and try again.'
+  }
+  // Authorization errors (403)
+  else if (lowerMessage.includes('403') || lowerMessage.includes('forbidden') || lowerMessage.includes('permission denied')) {
+    category = 'auth'
+    statusCode = 403
+    severity = 'high'
+    retryable = false
+    suggestedAction = 'You do not have permission to perform this action.'
+  }
+  // Bad request errors (400)
+  else if (lowerMessage.includes('400') || lowerMessage.includes('bad request') || lowerMessage.includes('invalid request')) {
+    category = 'validation'
+    statusCode = 400
+    severity = 'high'
+    retryable = false
+    suggestedAction = 'Please check your input and try again.'
+  }
+  // Server errors (5xx)
+  else if (
+    lowerMessage.includes('500') ||
+    lowerMessage.includes('502') ||
+    lowerMessage.includes('503') ||
+    lowerMessage.includes('504') ||
+    lowerMessage.includes('server error') ||
+    lowerMessage.includes('internal error')
+  ) {
+    category = 'server'
+    statusCode = 500
+    severity = 'high'
+    retryable = true
+    suggestedAction = 'The server is experiencing issues. Please try again later.'
+  }
+  // Timeout errors
+  else if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out') || lowerMessage.includes('deadline exceeded')) {
+    category = 'timeout'
+    statusCode = 408
+    severity = 'medium'
+    retryable = true
+    suggestedAction = 'The request took too long. Please try again.'
+  }
+  // Network errors
+  else if (
+    lowerMessage.includes('network') ||
+    lowerMessage.includes('fetch') ||
+    lowerMessage.includes('econnrefused') ||
+    lowerMessage.includes('enotfound') ||
+    lowerMessage.includes('econnreset') ||
+    lowerMessage.includes('connection refused') ||
+    lowerMessage.includes('connection reset')
+  ) {
+    category = 'network'
+    severity = 'high'
+    retryable = true
+    suggestedAction = 'Please check your internet connection and try again.'
+  }
+  // Default unknown error
+  else {
+    category = 'unknown'
+    severity = 'medium'
+    retryable = true
+    suggestedAction = 'An unexpected error occurred. Please try again.'
+  }
+
+  return {
+    code: `${category.toUpperCase()}_ERROR`,
+    message,
+    category,
+    statusCode,
+    retryable,
+    severity,
+    suggestedAction,
+    originalError: error,
+  }
+}
+
+/**
+ * Get recovery strategy with enhanced details
+ */
+export function getEnhancedRecoveryStrategy(error: unknown): {
+  details: EnhancedErrorDetails
+  strategy: ErrorRecoveryStrategy
+} {
+  const details = categorizeErrorEnhanced(error)
+
+  const strategy: ErrorRecoveryStrategy = {
+    shouldRetry: details.retryable,
+    retryDelay: calculateRetryDelay(details.category),
+    maxRetries: calculateMaxRetries(details.category),
+    userMessage: details.suggestedAction,
+    logLevel: details.severity === 'critical' ? 'error' : details.severity === 'high' ? 'error' : 'warn',
+  }
+
+  return { details, strategy }
+}
+
+/**
+ * Calculate retry delay based on error category
+ */
+function calculateRetryDelay(category: EnhancedErrorDetails['category']): number {
+  const delays: Record<EnhancedErrorDetails['category'], number> = {
+    rate_limit: 5000,
+    timeout: 2000,
+    network: 3000,
+    server: 4000,
+    client: 0,
+    auth: 0,
+    validation: 0,
+    unknown: 2000,
+  }
+  return delays[category] || 2000
+}
+
+/**
+ * Calculate max retries based on error category
+ */
+function calculateMaxRetries(category: EnhancedErrorDetails['category']): number {
+  const retries: Record<EnhancedErrorDetails['category'], number> = {
+    rate_limit: 5,
+    timeout: 3,
+    network: 3,
+    server: 3,
+    client: 0,
+    auth: 0,
+    validation: 0,
+    unknown: 2,
+  }
+  return retries[category] || 2
+}
+
