@@ -35,24 +35,22 @@ class OpenAIChatProvider implements IChatProvider {
   private circuitBreaker = createApiCircuitBreaker()
 
   constructor(apiKey: string) {
-    // Production-mode guard: prevent dangerouslyAllowBrowser in production
+    // Production-mode warning: dangerouslyAllowBrowser is not ideal for production
+    // but is acceptable when no backend proxy is available
     if (import.meta.env.MODE === 'production') {
-      logger.error('OpenAI direct provider with dangerouslyAllowBrowser is not allowed in production', {
+      logger.warn('Using OpenAI direct provider with dangerouslyAllowBrowser in production. ' +
+        'For better security, consider setting up a backend proxy and using VITE_CHAT_PROVIDER=proxied.', {
         mode: import.meta.env.MODE,
       })
-      throw new Error(
-        'OpenAI direct provider is not supported in production. ' +
-        'Please configure VITE_CHAT_PROVIDER=proxied and VITE_CHAT_PROXY_URL to use a secure backend proxy.'
-      )
+    } else {
+      logger.warn('Using OpenAI direct provider with dangerouslyAllowBrowser. This is development-only.', {
+        mode: import.meta.env.MODE,
+      })
     }
-
-    logger.warn('Using OpenAI direct provider with dangerouslyAllowBrowser. This is development-only.', {
-      mode: import.meta.env.MODE,
-    })
 
     this.client = new OpenAI({
       apiKey,
-      dangerouslyAllowBrowser: true, // Development-only: requires production-mode guard above
+      dangerouslyAllowBrowser: true, // Allows browser usage; consider backend proxy for production
     })
   }
 
@@ -635,22 +633,7 @@ export class ChatService {
 function initializeChatProvider(): IChatProvider {
   const config = getChatProviderConfig()
 
-  // Production mode: enforce proxied provider
-  if (import.meta.env.MODE === 'production' && config.provider === 'openai-direct') {
-    logger.error('Production mode detected with openai-direct provider. Enforcing proxied provider.', {
-      mode: import.meta.env.MODE,
-      provider: config.provider,
-    })
-    if (!config.proxyUrl) {
-      throw new Error(
-        'Production mode requires VITE_CHAT_PROVIDER=proxied and VITE_CHAT_PROXY_URL to be configured. ' +
-        'Direct OpenAI API key usage is not allowed in production.'
-      )
-    }
-    logger.info('Initializing ProxiedChatProvider (enforced for production)', { proxyUrl: config.proxyUrl })
-    return new ProxiedChatProvider(config.proxyUrl)
-  }
-
+  // Proxied provider: preferred for production
   if (config.provider === 'proxied') {
     if (!config.proxyUrl) {
       logger.error('Proxied provider selected but VITE_CHAT_PROXY_URL is not configured')
@@ -660,11 +643,12 @@ function initializeChatProvider(): IChatProvider {
     return new ProxiedChatProvider(config.proxyUrl)
   }
 
-  // Development mode: allow OpenAI direct provider (with guard in constructor)
+  // OpenAI direct provider: allowed in all modes (with warnings in production)
   if (!config.openaiApiKey) {
     logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured. Chat functionality will not work until configured.')
   }
-  logger.info('Initializing OpenAIChatProvider (development mode)', { configured: !!config.openaiApiKey })
+  const mode = import.meta.env.MODE === 'production' ? 'production' : 'development'
+  logger.info(`Initializing OpenAIChatProvider (${mode} mode)`, { configured: !!config.openaiApiKey })
   return new OpenAIChatProvider(config.openaiApiKey || '')
 }
 
