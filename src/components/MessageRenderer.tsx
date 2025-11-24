@@ -1,4 +1,5 @@
 import React, { useMemo, memo } from 'react'
+import DOMPurify from 'dompurify'
 import { detectContentType } from '../utils/responseFormatter'
 
 interface MessageRendererProps {
@@ -44,10 +45,16 @@ const MessageRendererComponent: React.FC<MessageRendererProps> = ({ content }) =
     processedText = processedText.replace(/\n\n/g, '</p><p class="mt-3">')
     processedText = processedText.replace(/\n/g, '<br />')
 
+    // Sanitize HTML to prevent XSS attacks
+    const sanitizedHtml = DOMPurify.sanitize(processedText, {
+      ALLOWED_TAGS: ['strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'ul', 'li', 'p', 'br'],
+      ALLOWED_ATTR: ['class'],
+    })
+
     return (
       <div
         className="space-y-2 text-sm leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: processedText }}
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
     )
   }

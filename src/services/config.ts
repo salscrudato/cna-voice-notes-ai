@@ -48,9 +48,26 @@ export function getOpenAIApiKey(): string | undefined {
 /**
  * Check if OpenAI API key is configured
  * @returns true if key is available, false otherwise
+ * @deprecated Use isChatProviderConfigured() instead
  */
 export function isOpenAIConfigured(): boolean {
   return !!import.meta.env.VITE_OPENAI_API_KEY
+}
+
+/**
+ * Check if the chat provider is properly configured
+ * Distinguishes between proxied and direct provider requirements
+ * @returns true if the configured provider has all required settings
+ */
+export function isChatProviderConfigured(): boolean {
+  const config = getChatProviderConfig()
+
+  if (config.provider === 'proxied') {
+    return !!config.proxyUrl
+  }
+
+  // openai-direct provider
+  return !!config.openaiApiKey
 }
 
 /**
@@ -93,10 +110,18 @@ export function getAPIConfig(overrides?: Partial<APIConfig>): APIConfig {
 }
 
 /**
- * Get a user-friendly error message for API key issues
+ * Get a user-friendly error message for API key/configuration issues
+ * Returns different messages based on the configured provider
  * @returns Error message to display to user
  */
 export function getApiKeyErrorMessage(): string {
+  const config = getChatProviderConfig()
+
+  if (config.provider === 'proxied') {
+    return '⚠️ Chat proxy not configured. Please set VITE_CHAT_PROXY_URL in .env.local and restart.'
+  }
+
+  // openai-direct provider
   return '⚠️ OpenAI API key not configured. Please set VITE_OPENAI_API_KEY in .env.local and restart.'
 }
 

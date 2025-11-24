@@ -17,7 +17,7 @@ import { UnderwritingFilters } from '../components/UnderwritingFilters'
 import { MetadataInputModal } from '../components/MetadataInputModal'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
 import { API } from '../constants'
-import type { ChatMessage, ConversationMetadata } from '../types'
+import type { ChatMessage, ConversationMetadata, ChatProviderMetadata } from '../types'
 
 const MainChatPage: React.FC = () => {
   const location = useLocation()
@@ -193,7 +193,35 @@ const MainChatPage: React.FC = () => {
 
     try {
       logger.info('Sending message to API')
-      const assistantResponse = await chatService.sendMessage(convId, userMessage)
+
+      // Build metadata for the chat provider
+      let providerMetadata: ChatProviderMetadata | undefined
+      try {
+        const voiceNotes = await voiceNoteService.getVoiceNotesByConversation(convId)
+        if (voiceNotes.length > 0) {
+          const voiceNoteIds = voiceNotes.map(vn => vn.id)
+          const readyNotes = voiceNotes.filter(vn => vn.status === 'ready')
+
+          providerMetadata = {
+            conversationId: convId,
+            voiceNoteIds,
+            context: {
+              voiceNoteCount: voiceNotes.length,
+              readyTranscripts: readyNotes.length,
+              transcriptSummaries: readyNotes
+                .filter(vn => vn.transcriptSummary)
+                .map(vn => vn.transcriptSummary)
+                .join(' | '),
+            },
+          }
+          logger.debug('Built provider metadata with voice notes', { voiceNoteCount: voiceNotes.length })
+        }
+      } catch (metadataError) {
+        logger.warn('Failed to build provider metadata', metadataError)
+        // Continue without metadata - not critical
+      }
+
+      const assistantResponse = await chatService.sendMessage(convId, userMessage, providerMetadata)
       clearTimeout(timeoutId)
 
       if (!assistantResponse || assistantResponse.trim().length === 0) {

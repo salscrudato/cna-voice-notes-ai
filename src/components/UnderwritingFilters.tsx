@@ -277,19 +277,25 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     </button>
     {expanded && (
       <div className="px-2 py-2 bg-slate-50 space-y-1">
-        {options.map((option) => (
-          <button
-            key={option}
-            onClick={() => onSelect(option)}
-            className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${
-              selectedValue === option.toLowerCase().replace(/\s+/g, '_') || (option.startsWith('All') && !selectedValue)
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            {option}
-          </button>
-        ))}
+        {options.map((option) => {
+          const isSelected = option.startsWith('All')
+            ? !selectedValue
+            : selectedValue === option
+
+          return (
+            <button
+              key={option}
+              onClick={() => onSelect(option)}
+              className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${
+                isSelected
+                  ? 'bg-blue-100 text-blue-700 font-medium'
+                  : 'text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {option}
+            </button>
+          )
+        })}
       </div>
     )}
   </div>

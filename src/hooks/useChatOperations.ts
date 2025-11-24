@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { chatService } from '../services/chatService'
 import { logger } from '../services/logger'
-import { isOpenAIConfigured, getApiKeyErrorMessage } from '../services/config'
+import { isChatProviderConfigured, getApiKeyErrorMessage } from '../services/config'
 import type { Conversation, ChatMessage } from '../types'
 
 interface UseChatOperationsProps {
@@ -73,9 +73,9 @@ export const useChatOperations = ({
     try {
       logger.info('Initializing chat')
 
-      // Check if OpenAI API key is configured
-      if (!isOpenAIConfigured()) {
-        logger.warn('OpenAI API key is not configured')
+      // Check if chat provider is properly configured
+      if (!isChatProviderConfigured()) {
+        logger.warn('Chat provider is not properly configured')
         setIsApiKeyMissing(true)
         setApiError(getApiKeyErrorMessage())
         return

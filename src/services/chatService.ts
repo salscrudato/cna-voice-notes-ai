@@ -5,6 +5,7 @@ import { logger } from './logger'
 import { retryWithBackoff } from '../utils/retry'
 import { getAPIConfig, getApiKeyErrorMessage, getChatProviderConfig } from './config'
 import { toDate } from '../utils/timestampConverter'
+import { API, UI } from '../constants'
 import {
   formatChatResponse,
   validateResponse,
@@ -33,6 +34,7 @@ class OpenAIChatProvider implements IChatProvider {
   private client: OpenAI
   private apiConfig = getAPIConfig()
   private circuitBreaker = createApiCircuitBreaker()
+  private startTime: number = 0
 
   constructor(apiKey: string) {
     // Production-mode warning: dangerouslyAllowBrowser is not ideal for production
@@ -55,7 +57,7 @@ class OpenAIChatProvider implements IChatProvider {
   }
 
   async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
-    const startTime = Date.now()
+    this.startTime = Date.now()
 
     try {
       if (!this.client.apiKey) {
@@ -64,7 +66,7 @@ class OpenAIChatProvider implements IChatProvider {
 
       // Cap the number of messages sent to the provider to manage token usage
       // Keep recent N messages to maintain context while controlling costs
-      const maxMessagesToSend = 20
+      const maxMessagesToSend = UI.MAX_MESSAGES_TO_SEND_TO_API
       const messagesToSend = messages.slice(-maxMessagesToSend)
 
       if (messagesToSend.length < messages.length) {
@@ -77,9 +79,24 @@ class OpenAIChatProvider implements IChatProvider {
       // If voice notes are provided, prepend a system message with context
       let finalMessages = messagesToSend
       if (providerMetadata?.voiceNoteIds && providerMetadata.voiceNoteIds.length > 0) {
+        // Build a structured context message
+        let contextMessage = `[Context: This conversation is linked to ${providerMetadata.voiceNoteIds.length} voice note(s).`
+
+        if (providerMetadata.context) {
+          const ctx = providerMetadata.context
+          if (ctx.readyTranscripts) {
+            contextMessage += ` ${ctx.readyTranscripts} ready transcript(s) available.`
+          }
+          if (ctx.transcriptSummaries) {
+            contextMessage += ` Transcript summaries: ${ctx.transcriptSummaries}`
+          }
+        }
+
+        contextMessage += ' Please consider this context when responding.]'
+
         const systemMessage: ChatMessageInput = {
           role: 'user',
-          content: `[Context: This conversation is linked to ${providerMetadata.voiceNoteIds.length} voice note(s). Please consider this context when responding.]`,
+          content: contextMessage,
         }
         finalMessages = [systemMessage, ...messagesToSend]
       }
@@ -89,10 +106,10 @@ class OpenAIChatProvider implements IChatProvider {
         retryWithBackoff(
           () =>
             this.client.chat.completions.create({
-              model: 'gpt-4o-mini',
+              model: API.MODEL,
               messages: finalMessages as OpenAI.Chat.ChatCompletionMessageParam[],
-              temperature: 0.7,
-              max_tokens: 1000,
+              temperature: API.TEMPERATURE,
+              max_tokens: API.MAX_TOKENS,
             }),
           {
             maxAttempts: this.apiConfig.maxRetries,
@@ -124,8 +141,8 @@ class OpenAIChatProvider implements IChatProvider {
       }
 
       // Format and sanitize response
-      const duration = Date.now() - startTime
-      const responseMetadata = createMetadata('openai', duration, 0, 'gpt-4o-mini', {
+      const duration = Date.now() - this.startTime
+      const responseMetadata = createMetadata('openai', duration, 0, API.MODEL, {
         prompt: response.usage?.prompt_tokens || 0,
         completion: response.usage?.completion_tokens || 0,
         total: response.usage?.total_tokens || 0,
@@ -157,7 +174,7 @@ class OpenAIChatProvider implements IChatProvider {
 
   private handleError(error: unknown): never {
     const errorDetails = parseError(error)
-    const duration = Date.now() - ((this as unknown as { startTime: number }).startTime || 0)
+    const duration = Date.now() - this.startTime
 
     // Map error categories to user-friendly messages
     const errorMessages: Record<string, string> = {
@@ -195,6 +212,7 @@ class ProxiedChatProvider implements IChatProvider {
   private proxyUrl: string
   private apiConfig = getAPIConfig()
   private circuitBreaker = createApiCircuitBreaker()
+  private startTime: number = 0
 
   constructor(proxyUrl: string) {
     if (!proxyUrl) {
@@ -205,15 +223,26 @@ class ProxiedChatProvider implements IChatProvider {
   }
 
   async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
-    const startTime = Date.now()
+    this.startTime = Date.now()
 
     try {
+      // Truncate message history to manage token usage
+      const maxMessagesToSend = UI.MAX_MESSAGES_TO_SEND_TO_API
+      const messagesToSend = messages.slice(-maxMessagesToSend)
+
+      if (messagesToSend.length < messages.length) {
+        logger.debug('Truncating message history for proxy call', {
+          total: messages.length,
+          sent: messagesToSend.length,
+        })
+      }
+
       const requestBody = {
-        messages,
+        messages: messagesToSend,
         metadata: providerMetadata || {},
       }
 
-      logger.debug('Sending request to proxy', { url: this.proxyUrl, messageCount: messages.length })
+      logger.debug('Sending request to proxy', { url: this.proxyUrl, messageCount: messagesToSend.length })
 
       // Execute with circuit breaker protection
       const response = await this.circuitBreaker.execute(() =>
@@ -291,8 +320,8 @@ class ProxiedChatProvider implements IChatProvider {
       }
 
       // Format and sanitize response
-      const duration = Date.now() - startTime
-      const responseMetadata = createMetadata('proxied', duration, 0, data.model || 'unknown', {
+      const duration = Date.now() - this.startTime
+      const responseMetadata = createMetadata('proxied', duration, 0, data.model || API.MODEL, {
         prompt: data.tokensUsed?.prompt || 0,
         completion: data.tokensUsed?.completion || 0,
         total: data.tokensUsed?.total || 0,
@@ -324,7 +353,7 @@ class ProxiedChatProvider implements IChatProvider {
 
   private handleError(error: unknown): never {
     const errorDetails = parseError(error)
-    const duration = Date.now() - ((this as unknown as { startTime: number }).startTime || 0)
+    const duration = Date.now() - this.startTime
 
     // Map error categories to user-friendly messages
     const errorMessages: Record<string, string> = {

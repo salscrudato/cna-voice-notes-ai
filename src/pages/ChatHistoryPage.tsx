@@ -149,7 +149,7 @@ const ChatHistoryPage: React.FC = () => {
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">{conv.title}</span>
                       </h3>
-                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
+                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-700 transition-colors flex-wrap">
                         <div className="flex items-center gap-1">
                           <FiClock size={14} className="flex-shrink-0" aria-hidden="true" />
                           <span>{formatDate(conv.createdAt)}</span>
@@ -160,6 +160,37 @@ const ChatHistoryPage: React.FC = () => {
                           <span>{conv.messageCount} message{conv.messageCount !== 1 ? 's' : ''}</span>
                         </div>
                       </div>
+
+                      {/* Metadata tags */}
+                      {(conv.metadata?.broker || conv.metadata?.lob || conv.metadata?.businessType || conv.metadata?.riskCategory || conv.metadata?.underwritingStatus) && (
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          {conv.metadata?.broker && (
+                            <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                              {conv.metadata.broker}
+                            </span>
+                          )}
+                          {conv.metadata?.lob && (
+                            <span className="inline-block px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
+                              {conv.metadata.lob}
+                            </span>
+                          )}
+                          {conv.metadata?.businessType && (
+                            <span className="inline-block px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                              {conv.metadata.businessType}
+                            </span>
+                          )}
+                          {conv.metadata?.riskCategory && (
+                            <span className="inline-block px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs font-medium">
+                              {conv.metadata.riskCategory}
+                            </span>
+                          )}
+                          {conv.metadata?.underwritingStatus && (
+                            <span className="inline-block px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">
+                              {conv.metadata.underwritingStatus}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}

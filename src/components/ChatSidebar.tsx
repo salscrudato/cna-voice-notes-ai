@@ -1,7 +1,7 @@
 import React, { useMemo, memo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import type { Conversation } from '../types'
-import { FiPlus, FiClock, FiUploadCloud, FiHome, FiSearch, FiX } from 'react-icons/fi'
+import { FiPlus, FiClock, FiUploadCloud, FiHome, FiSearch, FiX, FiMic } from 'react-icons/fi'
 import { ConversationItem } from './ConversationItem'
 import { getDateGroupLabel } from '../utils/dates'
 
@@ -168,6 +168,25 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
           <FiUploadCloud size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
           <span>Upload</span>
           {isOnPage('/upload') && (
+            <div className="ml-auto flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" aria-hidden="true" />
+            </div>
+          )}
+        </button>
+        <button
+          onClick={() => navigate('/voice-notes')}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm group hover:scale-105 active:scale-95 focus-visible-ring ${
+            isOnPage('/voice-notes')
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 font-semibold shadow-md border border-blue-300'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+          aria-label="View voice notes"
+          aria-current={isOnPage('/voice-notes') ? 'page' : undefined}
+        >
+          <FiMic size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
+          <span>Voice Notes</span>
+          {isOnPage('/voice-notes') && (
             <div className="ml-auto flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
               <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" aria-hidden="true" />

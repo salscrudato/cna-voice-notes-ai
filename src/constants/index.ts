@@ -37,7 +37,7 @@ export const UI = {
 // ============================================================================
 
 export const API = {
-  // OpenAI
+  // OpenAI / Chat Provider
   MODEL: 'gpt-4o-mini',
   TEMPERATURE: 0.7,
   MAX_TOKENS: 1000,

@@ -5,7 +5,7 @@
 
 import { storage, db } from '../firebase'
 import { ref, uploadBytesResumable } from 'firebase/storage'
-import { collection, addDoc, Timestamp, getDocs, query, doc, getDoc, updateDoc } from 'firebase/firestore'
+import { collection, addDoc, Timestamp, getDocs, query, doc, getDoc, updateDoc, where } from 'firebase/firestore'
 import { logger } from './logger'
 import { toDate } from '../utils/timestampConverter'
 import type { VoiceNote, VoiceNoteStatus } from '../types'
@@ -195,6 +195,66 @@ class VoiceNoteService {
       logger.info('Voice note linked successfully', { voiceNoteId, conversationId })
     } catch (error) {
       logger.error('Error linking voice note to conversation', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get all voice notes linked to a conversation
+   * @param conversationId - The ID of the conversation
+   * @returns Array of VoiceNote objects linked to the conversation
+   */
+  async getVoiceNotesByConversation(conversationId: string): Promise<VoiceNote[]> {
+    try {
+      logger.debug('Fetching voice notes for conversation', { conversationId })
+      const q = query(
+        collection(db, this.voiceNotesCollection),
+        where('conversationId', '==', conversationId)
+      )
+      const snapshot = await getDocs(q)
+
+      return snapshot.docs.map((docSnap) => {
+        const data = docSnap.data()
+        return {
+          id: docSnap.id,
+          fileName: data.fileName || 'Unknown',
+          storagePath: data.storagePath || '',
+          status: (data.status || 'uploaded') as VoiceNoteStatus,
+          createdAt: toDate(data.createdAt, 'voiceNote.createdAt'),
+          updatedAt: toDate(data.updatedAt, 'voiceNote.updatedAt'),
+          transcriptId: data.transcriptId,
+          transcriptSummary: data.transcriptSummary,
+          conversationId: data.conversationId,
+        }
+      })
+    } catch (error) {
+      logger.error('Error fetching voice notes for conversation', error)
+      throw error
+    }
+  }
+
+  /**
+   * Update voice note status and optional transcript information
+   * @param voiceNoteId - The ID of the voice note
+   * @param status - The new status
+   * @param partialFields - Optional additional fields to update (transcriptId, transcriptSummary)
+   */
+  async updateVoiceNoteStatus(
+    voiceNoteId: string,
+    status: VoiceNoteStatus,
+    partialFields?: Partial<VoiceNote>
+  ): Promise<void> {
+    try {
+      logger.info('Updating voice note status', { voiceNoteId, status })
+      const docRef = doc(db, this.voiceNotesCollection, voiceNoteId)
+      await updateDoc(docRef, {
+        status,
+        ...partialFields,
+        updatedAt: Timestamp.now(),
+      })
+      logger.info('Voice note status updated', { voiceNoteId, status })
+    } catch (error) {
+      logger.error('Error updating voice note status', error)
       throw error
     }
   }
