@@ -158,7 +158,15 @@ const AudioUploadPage: React.FC = () => {
                     Upload Complete!
                   </h3>
                   <p className="text-slate-600 text-sm sm:text-base font-medium truncate">{fileName}</p>
-                  <p className="text-slate-500 text-xs sm:text-sm mt-2">Redirecting to chat...</p>
+                  <p className="text-slate-500 text-xs sm:text-sm mt-4">Redirecting to chat in a moment...</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                  <button
+                    onClick={() => navigate('/chat', { state: { voiceNoteId: uploadedVoiceNoteId } })}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 text-sm sm:text-base"
+                  >
+                    Go to Chat Now
+                  </button>
                 </div>
               </div>
             ) : isUploading ? (

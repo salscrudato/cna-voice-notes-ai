@@ -5,9 +5,10 @@
 
 import { storage, db } from '../firebase'
 import { ref, uploadBytesResumable } from 'firebase/storage'
-import { collection, addDoc, Timestamp } from 'firebase/firestore'
+import { collection, addDoc, Timestamp, getDocs, query, doc, getDoc, updateDoc } from 'firebase/firestore'
 import { logger } from './logger'
-import type { VoiceNote } from '../types'
+import { toDate } from '../utils/timestampConverter'
+import type { VoiceNote, VoiceNoteStatus } from '../types'
 
 export interface UploadProgress {
   bytesTransferred: number
@@ -110,6 +111,90 @@ class VoiceNoteService {
       }
     } catch (error) {
       logger.error('Error creating voice note record', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get a voice note by ID
+   * @param voiceNoteId - The ID of the voice note
+   * @returns The VoiceNote or undefined if not found
+   */
+  async getVoiceNoteById(voiceNoteId: string): Promise<VoiceNote | undefined> {
+    try {
+      logger.debug('Fetching voice note', { voiceNoteId })
+      const docRef = doc(db, this.voiceNotesCollection, voiceNoteId)
+      const docSnap = await getDoc(docRef)
+
+      if (!docSnap.exists()) {
+        logger.warn('Voice note not found', { voiceNoteId })
+        return undefined
+      }
+
+      const data = docSnap.data()
+      return {
+        id: docSnap.id,
+        fileName: data.fileName || 'Unknown',
+        storagePath: data.storagePath || '',
+        status: (data.status || 'uploaded') as VoiceNoteStatus,
+        createdAt: toDate(data.createdAt, 'voiceNote.createdAt'),
+        updatedAt: toDate(data.updatedAt, 'voiceNote.updatedAt'),
+        transcriptId: data.transcriptId,
+        transcriptSummary: data.transcriptSummary,
+        conversationId: data.conversationId,
+      }
+    } catch (error) {
+      logger.error('Error fetching voice note', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get all voice notes for the current user
+   * @returns Array of VoiceNote objects
+   */
+  async getAllVoiceNotes(): Promise<VoiceNote[]> {
+    try {
+      logger.debug('Fetching all voice notes')
+      const q = query(collection(db, this.voiceNotesCollection))
+      const snapshot = await getDocs(q)
+
+      return snapshot.docs.map((docSnap) => {
+        const data = docSnap.data()
+        return {
+          id: docSnap.id,
+          fileName: data.fileName || 'Unknown',
+          storagePath: data.storagePath || '',
+          status: (data.status || 'uploaded') as VoiceNoteStatus,
+          createdAt: toDate(data.createdAt, 'voiceNote.createdAt'),
+          updatedAt: toDate(data.updatedAt, 'voiceNote.updatedAt'),
+          transcriptId: data.transcriptId,
+          transcriptSummary: data.transcriptSummary,
+          conversationId: data.conversationId,
+        }
+      })
+    } catch (error) {
+      logger.error('Error fetching voice notes', error)
+      throw error
+    }
+  }
+
+  /**
+   * Link a voice note to a conversation
+   * @param voiceNoteId - The ID of the voice note
+   * @param conversationId - The ID of the conversation
+   */
+  async linkVoiceNoteToConversation(voiceNoteId: string, conversationId: string): Promise<void> {
+    try {
+      logger.info('Linking voice note to conversation', { voiceNoteId, conversationId })
+      const docRef = doc(db, this.voiceNotesCollection, voiceNoteId)
+      await updateDoc(docRef, {
+        conversationId,
+        updatedAt: Timestamp.now(),
+      })
+      logger.info('Voice note linked successfully', { voiceNoteId, conversationId })
+    } catch (error) {
+      logger.error('Error linking voice note to conversation', error)
       throw error
     }
   }

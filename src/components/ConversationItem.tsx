@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { FiTrash2, FiEdit2, FiCheck, FiX } from 'react-icons/fi'
 import type { Conversation } from '../types'
 
@@ -10,7 +10,7 @@ interface ConversationItemProps {
   onRename: (id: string, newTitle: string) => void
 }
 
-export const ConversationItem: React.FC<ConversationItemProps> = ({
+const ConversationItemComponent: React.FC<ConversationItemProps> = ({
   conversation,
   isActive,
   onSelect,
@@ -29,7 +29,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     }
   }, [isEditing])
 
-  const handleRename = () => {
+  const handleRename = useCallback(() => {
     const trimmedValue = editValue.trim()
     if (!trimmedValue) {
       setEditValue(conversation.title)
@@ -41,26 +41,26 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     }
     setIsEditing(false)
     setEditValue(conversation.title)
-  }
+  }, [editValue, conversation.title, conversation.id, onRename])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setIsEditing(false)
     setEditValue(conversation.title)
-  }
+  }, [conversation.title])
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (window.confirm(`Delete "${conversation.title}"?`)) {
       onDelete(conversation.id)
     }
-  }
+  }, [conversation.title, conversation.id, onDelete])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleRename()
     } else if (e.key === 'Escape') {
       handleCancel()
     }
-  }
+  }, [handleRename, handleCancel])
 
   if (isEditing) {
     return (
@@ -173,3 +173,4 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   )
 }
 
+export const ConversationItem = memo(ConversationItemComponent)

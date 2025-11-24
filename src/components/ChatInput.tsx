@@ -1,5 +1,6 @@
-import React, { memo } from 'react'
+import React, { memo, useCallback } from 'react'
 import { FiArrowUp } from 'react-icons/fi'
+import { UI } from '../constants'
 
 interface ChatInputProps {
   value: string
@@ -16,13 +17,17 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
   onSend,
   isLoading,
 }) => {
-  const handleClick = () => {
+  const isDisabled = isLoading || !value.trim()
+  const charCount = value.length
+  const maxChars = UI.MAX_MESSAGE_LENGTH
+
+  const handleClick = useCallback(() => {
     if (!isDisabled) {
       onSend()
     }
-  }
+  }, [isDisabled, onSend])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Ctrl/Cmd + Enter to send
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault()
@@ -30,11 +35,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
         onSend()
       }
     }
-  }
-
-  const isDisabled = isLoading || !value.trim()
-  const charCount = value.length
-  const maxChars = 4000
+  }, [isDisabled, onSend])
 
   return (
     <div className="border-t border-slate-200/50 p-4 sm:p-6 bg-gradient-to-t from-white via-white/95 to-white/80 backdrop-blur-md shadow-2xl">
@@ -49,11 +50,11 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
           onKeyPress={onKeyPress}
           onKeyDown={handleKeyDown}
           placeholder="Ask me anything... (Ctrl+Enter to send)"
-          rows={1}
+          rows={UI.MESSAGE_INPUT_ROWS}
           disabled={isLoading}
           maxLength={maxChars}
           className="flex-1 px-5 py-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-slate-900 placeholder-slate-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg hover:border-slate-300 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{ maxHeight: '120px' }}
+          style={{ maxHeight: `${UI.MESSAGE_INPUT_MAX_HEIGHT}px` }}
           aria-label="Message input"
           aria-describedby="send-button char-count"
           aria-busy={isLoading}

@@ -15,6 +15,7 @@ import type { ChatMessage } from '../types'
 
 const MainChatPage: React.FC = () => {
   const location = useLocation()
+
   const {
     conversations,
     currentConversationId,
@@ -56,6 +57,7 @@ const MainChatPage: React.FC = () => {
 
     // If navigated from history with a conversationId, set it as current
     const navigationState = location.state as { conversationId?: string } | null
+
     if (navigationState?.conversationId) {
       setCurrentConversationId(navigationState.conversationId)
       logger.debug('Loaded conversation from navigation state', { conversationId: navigationState.conversationId })

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, memo } from 'react'
 import { detectContentType } from '../utils/responseFormatter'
 
 interface MessageRendererProps {
@@ -9,7 +9,7 @@ interface MessageRendererProps {
  * Enhanced message renderer that handles different content types
  * Supports text, markdown, and JSON formatting
  */
-const MessageRenderer: React.FC<MessageRendererProps> = ({ content }) => {
+const MessageRendererComponent: React.FC<MessageRendererProps> = ({ content }) => {
   const contentType = useMemo(() => detectContentType(content), [content])
 
   // Render markdown-like content
@@ -86,5 +86,5 @@ const MessageRenderer: React.FC<MessageRendererProps> = ({ content }) => {
   )
 }
 
-export { MessageRenderer }
+export const MessageRenderer = memo(MessageRendererComponent)
 

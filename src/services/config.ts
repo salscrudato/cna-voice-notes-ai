@@ -12,6 +12,14 @@ export interface APIConfig {
   backoffMultiplier: number
 }
 
+export type ChatProvider = 'openai-direct' | 'proxied'
+
+export interface ChatProviderConfig {
+  provider: ChatProvider
+  openaiApiKey?: string
+  proxyUrl?: string
+}
+
 // Default API configuration
 const DEFAULT_API_CONFIG: APIConfig = {
   requestTimeout: 30000, // 30 seconds
@@ -23,16 +31,15 @@ const DEFAULT_API_CONFIG: APIConfig = {
 /**
  * Get the OpenAI API key from environment variables
  * @returns The API key or undefined if not configured
- * @throws Error if key is missing (when explicitly checked)
  */
 export function getOpenAIApiKey(): string | undefined {
   const key = import.meta.env.VITE_OPENAI_API_KEY
-  
+
   if (!key) {
     logger.warn('OpenAI API key is not configured')
     return undefined
   }
-  
+
   // Ensure we never log the actual key
   logger.debug('OpenAI API key is configured')
   return key
@@ -44,6 +51,33 @@ export function getOpenAIApiKey(): string | undefined {
  */
 export function isOpenAIConfigured(): boolean {
   return !!import.meta.env.VITE_OPENAI_API_KEY
+}
+
+/**
+ * Get the chat provider configuration
+ * @returns Chat provider configuration based on environment variables
+ */
+export function getChatProviderConfig(): ChatProviderConfig {
+  const provider = (import.meta.env.VITE_CHAT_PROVIDER || 'openai-direct') as ChatProvider
+  const proxyUrl = import.meta.env.VITE_CHAT_PROXY_URL
+  const openaiApiKey = getOpenAIApiKey()
+
+  // Validate configuration
+  if (provider === 'proxied' && !proxyUrl) {
+    logger.error('Proxied chat provider selected but VITE_CHAT_PROXY_URL is not configured')
+  }
+
+  if (provider === 'openai-direct' && !openaiApiKey) {
+    logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured')
+  }
+
+  logger.info('Chat provider configured', { provider, hasProxyUrl: !!proxyUrl, hasApiKey: !!openaiApiKey })
+
+  return {
+    provider,
+    proxyUrl,
+    openaiApiKey,
+  }
 }
 
 /**

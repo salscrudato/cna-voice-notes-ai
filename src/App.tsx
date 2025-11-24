@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { lazy, Suspense } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SkipToContent } from './components/SkipToContent'
+import { LayoutShell } from './components/LayoutShell'
 import { LandingPage } from './pages/LandingPage'
 
 // Lazy load pages for better code splitting
@@ -21,20 +22,22 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <ErrorBoundary>
-      <Router>
-        <SkipToContent />
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/chat" element={<MainChatPage />} />
-            <Route path="/history" element={<ChatHistoryPage />} />
-            <Route path="/upload" element={<AudioUploadPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Router>
-    </ErrorBoundary>
+    <LayoutShell>
+      <ErrorBoundary>
+        <Router>
+          <SkipToContent />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/chat" element={<MainChatPage />} />
+              <Route path="/history" element={<ChatHistoryPage />} />
+              <Route path="/upload" element={<AudioUploadPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </ErrorBoundary>
+    </LayoutShell>
   )
 }
 

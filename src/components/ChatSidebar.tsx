@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Conversation } from '../types'
 import { FiPlus, FiClock, FiUploadCloud, FiHome, FiSearch, FiX } from 'react-icons/fi'
 import { ConversationItem } from './ConversationItem'
+import { getDateGroupLabel } from '../utils/dates'
 
 interface ChatSidebarProps {
   isOpen: boolean
@@ -33,17 +34,9 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
     )
 
     const groups: Record<string, Conversation[]> = {}
-    const now = new Date()
 
     filtered.forEach(conv => {
-      const convDate = new Date(conv.createdAt || 0)
-      const daysDiff = Math.floor((now.getTime() - convDate.getTime()) / (1000 * 60 * 60 * 24))
-
-      let groupKey = 'Older'
-      if (daysDiff === 0) groupKey = 'Today'
-      else if (daysDiff === 1) groupKey = 'Yesterday'
-      else if (daysDiff < 7) groupKey = 'This Week'
-      else if (daysDiff < 30) groupKey = 'This Month'
+      const groupKey = getDateGroupLabel(conv.createdAt)
 
       if (!groups[groupKey]) groups[groupKey] = []
       groups[groupKey].push(conv)

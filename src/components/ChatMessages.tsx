@@ -1,7 +1,9 @@
-import React, { useRef, useEffect, memo, useState } from 'react'
+import React, { useRef, useEffect, memo, useState, useCallback } from 'react'
 import { FiCopy, FiCheck } from 'react-icons/fi'
 import { MessageRenderer } from './MessageRenderer'
 import { LoadingSpinner } from './LoadingSpinner'
+import { UI } from '../constants'
+import { formatTime } from '../utils/formatting'
 import type { ChatMessage } from '../types'
 
 interface ChatMessagesProps {
@@ -14,17 +16,17 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoadin
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: UI.MESSAGE_SCROLL_BEHAVIOR })
   }, [messages, isLoading])
 
-  const handleCopyMessage = (messageId: string, content: string) => {
+  const handleCopyMessage = useCallback((messageId: string, content: string) => {
     navigator.clipboard.writeText(content).then(() => {
       setCopiedId(messageId)
-      setTimeout(() => setCopiedId(null), 2000)
+      setTimeout(() => setCopiedId(null), UI.COPY_FEEDBACK_DURATION)
     }).catch((error) => {
       console.error('Failed to copy message:', error)
     })
-  }
+  }, [])
 
   return (
     <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-white via-slate-50 to-slate-100" role="main" aria-label="Chat messages">
@@ -87,7 +89,7 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoadin
             <div className={`text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
               msg.role === 'user' ? 'text-right pr-2' : 'text-left pl-2'
             } ${msg.role === 'user' ? 'text-blue-200' : 'text-slate-400'}`}>
-              {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+              {msg.createdAt ? formatTime(msg.createdAt) : ''}
             </div>
           </div>
         </div>

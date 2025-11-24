@@ -3,14 +3,15 @@ import { db } from '../firebase'
 import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, limit, deleteDoc, doc, updateDoc, increment } from 'firebase/firestore'
 import { logger } from './logger'
 import { retryWithBackoff } from '../utils/retry'
-import { getOpenAIApiKey, getAPIConfig, getApiKeyErrorMessage } from './config'
+import { getAPIConfig, getApiKeyErrorMessage, getChatProviderConfig } from './config'
+import { toDate } from '../utils/timestampConverter'
 import {
   formatChatResponse,
   validateResponse,
   createMetadata,
   parseError,
 } from '../utils/responseFormatter'
-import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider } from '../types'
+import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatProviderMetadata } from '../types'
 
 /**
  * OpenAI chat provider implementation
@@ -33,9 +34,8 @@ class OpenAIChatProvider implements IChatProvider {
     })
   }
 
-  async sendMessage(messages: ChatMessageInput[]): Promise<string> {
+  async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
     const startTime = Date.now()
-    let retryCount = 0
 
     try {
       if (!this.client.apiKey) {
@@ -54,11 +54,21 @@ class OpenAIChatProvider implements IChatProvider {
         })
       }
 
+      // If voice notes are provided, prepend a system message with context
+      let finalMessages = messagesToSend
+      if (providerMetadata?.voiceNoteIds && providerMetadata.voiceNoteIds.length > 0) {
+        const systemMessage: ChatMessageInput = {
+          role: 'user',
+          content: `[Context: This conversation is linked to ${providerMetadata.voiceNoteIds.length} voice note(s). Please consider this context when responding.]`,
+        }
+        finalMessages = [systemMessage, ...messagesToSend]
+      }
+
       const response = await retryWithBackoff(
         () =>
           this.client.chat.completions.create({
             model: 'gpt-4o-mini',
-            messages: messagesToSend as OpenAI.Chat.ChatCompletionMessageParam[],
+            messages: finalMessages as OpenAI.Chat.ChatCompletionMessageParam[],
             temperature: 0.7,
             max_tokens: 1000,
           }),
@@ -84,13 +94,13 @@ class OpenAIChatProvider implements IChatProvider {
 
       // Format and sanitize response
       const duration = Date.now() - startTime
-      const metadata = createMetadata('openai', duration, retryCount, 'gpt-4o-mini', {
+      const responseMetadata = createMetadata('openai', duration, 0, 'gpt-4o-mini', {
         prompt: response.usage?.prompt_tokens || 0,
         completion: response.usage?.completion_tokens || 0,
         total: response.usage?.total_tokens || 0,
       })
 
-      const formattedResponse = formatChatResponse(rawContent, metadata, {
+      const formattedResponse = formatChatResponse(rawContent, responseMetadata, {
         sanitize: true,
         validateSchema: true,
         includeMetadata: true,
@@ -100,10 +110,10 @@ class OpenAIChatProvider implements IChatProvider {
       logger.logResponseSuccess(
         'openai',
         duration,
-        retryCount,
+        0,
         formattedResponse.length,
         formattedResponse.contentType,
-        metadata.tokensUsed
+        responseMetadata.tokensUsed
       )
       logger.logResponseTiming('openai', duration, 'OpenAI API call')
 
@@ -116,7 +126,7 @@ class OpenAIChatProvider implements IChatProvider {
 
   private handleError(error: unknown): never {
     const errorDetails = parseError(error)
-    const duration = Date.now() - (this as any).startTime || 0
+    const duration = Date.now() - ((this as unknown as { startTime: number }).startTime || 0)
 
     // Map error categories to user-friendly messages
     const errorMessages: Record<string, string> = {
@@ -138,6 +148,132 @@ class OpenAIChatProvider implements IChatProvider {
       errorDetails.code,
       errorDetails.category,
       'OpenAI API error'
+    )
+
+    // Throw user-friendly error
+    throw new Error(userMessage)
+  }
+}
+
+/**
+ * Proxied chat provider implementation
+ * Sends requests to a backend proxy endpoint (e.g., Cloud Run, Cloud Functions)
+ * This keeps the API key server-side only and provides better security
+ */
+class ProxiedChatProvider implements IChatProvider {
+  private proxyUrl: string
+  private apiConfig = getAPIConfig()
+
+  constructor(proxyUrl: string) {
+    if (!proxyUrl) {
+      throw new Error('Proxy URL is required for ProxiedChatProvider')
+    }
+    this.proxyUrl = proxyUrl
+    logger.info('ProxiedChatProvider initialized', { proxyUrl: this.proxyUrl })
+  }
+
+  async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
+    const startTime = Date.now()
+
+    try {
+      const requestBody = {
+        messages,
+        metadata: providerMetadata || {},
+      }
+
+      logger.debug('Sending request to proxy', { url: this.proxyUrl, messageCount: messages.length })
+
+      const response = await retryWithBackoff(
+        () =>
+          fetch(this.proxyUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          }),
+        {
+          maxAttempts: this.apiConfig.maxRetries,
+          delayMs: this.apiConfig.retryDelay,
+          backoffMultiplier: this.apiConfig.backoffMultiplier,
+        }
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Proxy returned ${response.status}: ${errorText}`)
+      }
+
+      const data = await response.json()
+
+      // Validate response structure
+      if (!data.content || typeof data.content !== 'string') {
+        throw new Error('Invalid response format from proxy: missing or invalid content field')
+      }
+
+      // Validate response
+      const validation = validateResponse(data.content)
+      if (!validation.isValid) {
+        logger.error('Response validation failed', { errors: validation.errors })
+        throw new Error(`Invalid response: ${validation.errors.join(', ')}`)
+      }
+
+      // Format and sanitize response
+      const duration = Date.now() - startTime
+      const responseMetadata = createMetadata('proxied', duration, 0, data.model || 'unknown', {
+        prompt: data.tokensUsed?.prompt || 0,
+        completion: data.tokensUsed?.completion || 0,
+        total: data.tokensUsed?.total || 0,
+      })
+
+      const formattedResponse = formatChatResponse(data.content, responseMetadata, {
+        sanitize: true,
+        validateSchema: true,
+        includeMetadata: true,
+      })
+
+      // Log successful response
+      logger.logResponseSuccess(
+        'proxied',
+        duration,
+        0,
+        formattedResponse.length,
+        formattedResponse.contentType,
+        responseMetadata.tokensUsed
+      )
+      logger.logResponseTiming('proxied', duration, 'Proxy API call')
+
+      return formattedResponse.content
+    } catch (error) {
+      logger.error('Error in ProxiedChatProvider.sendMessage', error)
+      return this.handleError(error)
+    }
+  }
+
+  private handleError(error: unknown): never {
+    const errorDetails = parseError(error)
+    const duration = Date.now() - ((this as unknown as { startTime: number }).startTime || 0)
+
+    // Map error categories to user-friendly messages
+    const errorMessages: Record<string, string> = {
+      client: 'Invalid request. Please check your input and try again.',
+      server: 'Chat service is temporarily unavailable. Please try again later.',
+      network: 'Network connection error. Please check your internet connection.',
+      timeout: 'Request timed out. Please try again.',
+      validation: 'Invalid response format received. Please try again.',
+      unknown: 'An unexpected error occurred. Please try again.',
+    }
+
+    const userMessage = errorMessages[errorDetails.category] || errorMessages.unknown
+
+    // Log error with structured logging
+    logger.logResponseError(
+      'proxied',
+      duration,
+      0,
+      errorDetails.code,
+      errorDetails.category,
+      'Proxy API error'
     )
 
     // Throw user-friendly error
@@ -212,13 +348,16 @@ class FirestoreChatManager {
       )
       const snapshot = await getDocs(q)
       logger.debug('Messages loaded', { count: snapshot.docs.length })
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        conversationId: doc.data().conversationId,
-        role: doc.data().role,
-        content: doc.data().content,
-        createdAt: doc.data().createdAt.toDate(),
-      }))
+      return snapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          conversationId: data.conversationId || conversationId,
+          role: data.role || 'user',
+          content: data.content || '',
+          createdAt: toDate(data.createdAt, 'message.createdAt'),
+        }
+      })
     } catch (error) {
       logger.error('Error loading messages', error)
       throw error
@@ -240,11 +379,14 @@ class FirestoreChatManager {
       return snapshot.docs.map((doc) => {
         const data = doc.data()
         // Safely handle missing or malformed fields with sensible defaults
+        const createdAt = toDate(data.createdAt, 'conversation.createdAt')
+        const updatedAt = toDate(data.updatedAt, 'conversation.updatedAt')
+
         return {
           id: doc.id,
           title: data.title || 'Untitled Conversation',
-          createdAt: data.createdAt?.toDate() || new Date(0),
-          updatedAt: data.updatedAt?.toDate() || data.createdAt?.toDate() || new Date(0),
+          createdAt,
+          updatedAt,
           messageCount: typeof data.messageCount === 'number' ? data.messageCount : 0,
         }
       })
@@ -330,7 +472,7 @@ export class ChatService {
     this.firestoreManager = new FirestoreChatManager()
   }
 
-  async sendMessage(conversationId: string, userMessage: string): Promise<string> {
+  async sendMessage(conversationId: string, userMessage: string, metadata?: ChatProviderMetadata): Promise<string> {
     try {
       logger.info('Sending message', { conversationId, messageLength: userMessage.length })
 
@@ -346,8 +488,8 @@ export class ChatService {
         content: msg.content,
       }))
 
-      // Get response from provider
-      const assistantResponse = await this.provider.sendMessage(apiMessages)
+      // Get response from provider with optional metadata
+      const assistantResponse = await this.provider.sendMessage(apiMessages, metadata)
 
       if (!assistantResponse) {
         throw new Error('Empty response from AI provider')
@@ -393,14 +535,27 @@ export class ChatService {
   }
 }
 
-// Initialize with OpenAI
-const apiKey = getOpenAIApiKey()
-if (!apiKey) {
-  logger.warn('OpenAI API key not configured. Chat functionality will not work until configured.')
+// Initialize chat provider based on configuration
+function initializeChatProvider(): IChatProvider {
+  const config = getChatProviderConfig()
+
+  if (config.provider === 'proxied') {
+    if (!config.proxyUrl) {
+      logger.error('Proxied provider selected but VITE_CHAT_PROXY_URL is not configured')
+      throw new Error('Proxied chat provider requires VITE_CHAT_PROXY_URL to be configured')
+    }
+    logger.info('Initializing ProxiedChatProvider', { proxyUrl: config.proxyUrl })
+    return new ProxiedChatProvider(config.proxyUrl)
+  }
+
+  // Default to OpenAI direct provider
+  if (!config.openaiApiKey) {
+    logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured. Chat functionality will not work until configured.')
+  }
+  logger.info('Initializing OpenAIChatProvider', { configured: !!config.openaiApiKey })
+  return new OpenAIChatProvider(config.openaiApiKey || '')
 }
-const provider = new OpenAIChatProvider(apiKey || '')
 
-logger.info('Chat provider initialized', { provider: 'OpenAI', configured: !!apiKey })
-
+const provider = initializeChatProvider()
 export const chatService = new ChatService(provider)
 

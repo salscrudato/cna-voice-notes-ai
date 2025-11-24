@@ -30,9 +30,16 @@ export interface ChatMessageInput {
   content: string
 }
 
-/** Extensible chat provider interface for supporting multiple AI providers */
+/** Extended chat provider interface with optional metadata support */
 export interface IChatProvider {
-  sendMessage(messages: ChatMessageInput[]): Promise<string>
+  sendMessage(messages: ChatMessageInput[], metadata?: ChatProviderMetadata): Promise<string>
+}
+
+/** Optional metadata to send with chat provider requests */
+export interface ChatProviderMetadata {
+  conversationId?: string
+  voiceNoteIds?: string[]
+  context?: Record<string, unknown>
 }
 
 /** Configuration for API timeouts and retries */

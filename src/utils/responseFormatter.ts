@@ -31,6 +31,7 @@ export function sanitizeContent(content: string): string {
   }
 
   // Remove null bytes and control characters
+  // eslint-disable-next-line no-control-regex
   let sanitized = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
 
   // Trim excessive whitespace
