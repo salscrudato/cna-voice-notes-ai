@@ -1,97 +1,131 @@
-import React, { memo, useState } from 'react'
+import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowRight, FiPlay } from 'react-icons/fi'
+import { FiArrowRight, FiMic, FiMessageCircle, FiBook } from 'react-icons/fi'
 
 const LandingHeroComponent: React.FC = () => {
   const navigate = useNavigate()
-  const [isHovering, setIsHovering] = useState(false)
 
   return (
-    <section className="relative py-20 sm:py-28 lg:py-36 px-4 sm:px-6 overflow-hidden">
-      {/* Enhanced animated gradient background with multiple layers */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 right-0 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
+    <section className="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+      {/* Soft, light background glow */}
+      <div className="pointer-events-none absolute inset-x-0 -top-40 -z-10 flex justify-center">
+        <div className="h-64 w-[42rem] bg-gradient-to-b from-blue-100/80 via-cyan-50 to-transparent opacity-70 blur-2xl" />
       </div>
 
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left: Text & CTAs */}
-          <div className="flex flex-col justify-center space-y-8 animate-fade-in-up">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 w-fit px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-cyan-300">AI-Powered Voice Analysis</span>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-12 lg:gap-16 items-center">
+          {/* Left: copy and primary actions */}
+          <div className="space-y-8 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 ring-1 ring-blue-100">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live underwriting workbench
             </div>
 
-            <div>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-                Transform Voice
-                <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mt-3">
-                  Into Insights
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-slate-900">
+                Turn voice notes into
+                <span className="block gradient-text mt-1">
+                  searchable underwriting insight.
                 </span>
               </h1>
-              <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl font-medium">
-                Analyze underwriting voice memos with AI-powered intelligence. Extract key insights instantly. Make data-driven decisions that improve win rates.
+              <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-xl">
+                Chat with GPT-4o-mini, keep every thread in Firestore, and connect audio uploads
+                directly into the same workspaceno extra dashboards or tooling to learn.
               </p>
             </div>
 
-            <div className="flex gap-3 sm:gap-4 flex-wrap pt-8">
+            {/* Primary CTAs */}
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => navigate('/chat')}
-                className="group px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 rounded-xl font-bold shadow-xl shadow-cyan-500/60 hover:shadow-2xl hover:shadow-cyan-400/80 hover:from-cyan-300 hover:to-blue-400 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 text-base sm:text-lg focus-visible-ring"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:shadow-lg hover:bg-slate-800 hover:scale-[1.02] active:scale-95 focus-visible-ring"
               >
-                <span>Start Chatting</span>
-                <FiArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
+                Start a conversation
+                <FiArrowRight className="h-4 w-4" />
               </button>
               <button
                 onClick={() => navigate('/upload')}
-                className="group px-8 sm:px-10 py-4 sm:py-5 bg-slate-700/80 text-cyan-200 border-2 border-cyan-400/60 rounded-xl font-semibold hover:bg-slate-600 hover:border-cyan-300 hover:text-cyan-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-cyan-500/40 text-base sm:text-lg focus-visible-ring flex items-center gap-2 backdrop-blur-sm"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 hover:border-slate-400 hover:bg-slate-50 focus-visible-ring"
               >
-                <FiPlay size={18} />
-                <span>Upload Audio</span>
+                <FiMic className="h-4 w-4" />
+                Upload a voice note
               </button>
             </div>
-          </div>
 
-          {/* Right: Interactive Visual Hero Element */}
-          <div className="hidden lg:flex items-center justify-center animate-fade-in stagger-2">
-            <div
-              className="relative w-full max-w-md h-96 cursor-pointer"
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-            >
-              {/* Glassmorphic background with dark theme */}
-              <div className={`absolute inset-0 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-3xl backdrop-blur-xl border border-cyan-500/30 shadow-2xl shadow-cyan-500/20 transition-all duration-500 ${isHovering ? 'shadow-cyan-400/50 scale-105 border-cyan-400/50' : ''}`} />
-
-              {/* Animated border glow on hover */}
-              {isHovering && (
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 blur-xl animate-pulse" />
-              )}
-
-              {/* Mock chat panel with dark theme */}
-              <div className="absolute inset-4 flex flex-col">
-                <div className="h-10 bg-slate-700/50 rounded-lg mb-4" />
-                <div className="flex-1 space-y-4 overflow-hidden">
-                  <div className="h-8 bg-cyan-500/20 rounded-lg w-3/4 animate-pulse" />
-                  <div className="h-8 bg-slate-600/30 rounded-lg w-4/5 animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <div className="h-8 bg-cyan-500/20 rounded-lg w-2/3 animate-pulse" style={{ animationDelay: '0.4s' }} />
-                </div>
+            {/* Concise feature overview */}
+            <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm">
+                <dt className="flex items-center gap-2 text-slate-500">
+                  <FiMessageCircle className="h-4 w-4 text-blue-600" />
+                  Conversational AI
+                </dt>
+                <dd className="mt-1 font-medium text-slate-900">
+                  GPT-4o-mini chat tuned for underwriting workflows.
+                </dd>
               </div>
 
-              {/* Floating insight cards with dark theme */}
-              <div className="absolute -bottom-8 -right-8 bg-slate-800 rounded-2xl p-5 shadow-2xl shadow-cyan-500/30 border border-cyan-500/30 backdrop-blur-sm max-w-xs hover:shadow-2xl hover:shadow-cyan-400/50 transition-all duration-300 hover:scale-110 hover:-translate-y-2">
-                <div className="text-xs font-bold text-cyan-300 mb-4 uppercase tracking-wider">Key Insights</div>
-                <div className="space-y-3 text-xs text-slate-300">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 bg-cyan-400 rounded-full" />
-                    <span className="font-medium">Broker: Marsh & McLennan</span>
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm">
+                <dt className="flex items-center gap-2 text-slate-500">
+                  <FiBook className="h-4 w-4 text-emerald-600" />
+                  Persistent history
+                </dt>
+                <dd className="mt-1 font-medium text-slate-900">
+                  Every conversation stored in Firestore with rich metadata.
+                </dd>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm">
+                <dt className="flex items-center gap-2 text-slate-500">
+                  <FiMic className="h-4 w-4 text-indigo-600" />
+                  Audio &amp; voice notes
+                </dt>
+                <dd className="mt-1 font-medium text-slate-900">
+                  Upload audio, track processing, and open notes directly in chat.
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          {/* Right: simple chat preview card */}
+          <div className="hidden lg:block animate-fade-in-slow">
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-100 via-cyan-100 to-transparent blur-xl" />
+              <div className="relative rounded-3xl border border-slate-200 bg-white/90 shadow-xl backdrop-blur-sm p-4 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-semibold">
+                      CNA
+                    </div>
+                    <div className="text-[11px]">
+                      <p className="font-semibold text-slate-900">Live chat</p>
+                      <p className="text-slate-500">Underwriting assistant</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 bg-purple-400 rounded-full" />
-                    <span className="font-medium">LOB: Workers Comp</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-medium text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Ready
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-[11px] leading-relaxed">
+                  <div className="flex justify-end">
+                    <div className="max-w-[70%] rounded-2xl bg-slate-900 px-3 py-2 text-white">
+                      How risky is this workers comp renewal?
+                    </div>
                   </div>
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] rounded-2xl bg-slate-100 px-3 py-2 text-slate-900">
+                      Ive reviewed the submission and transcript. Loss ratio is improving and
+                      exposure is stable. Here are three scenarios to consider
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 flex items-center gap-2">
+                  <FiMic className="h-3.5 w-3.5 text-slate-500" />
+                  <span className="font-medium text-slate-900 truncate">
+                    Linked voice note: ACME-renewal-call.m4a
+                  </span>
                 </div>
               </div>
             </div>
