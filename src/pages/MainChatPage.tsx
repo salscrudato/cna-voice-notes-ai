@@ -76,7 +76,7 @@ const MainChatPage: React.FC = () => {
     let convId = currentConversationId
     if (!convId) {
       try {
-        const title = `Chat ${new Date().toLocaleDateString()}`
+        const title = userMessage.substring(0, 50) || `Chat ${new Date().toLocaleDateString()}`
         logger.info('Creating new conversation', { title })
         convId = await chatService.createConversation(title)
         logger.info('Conversation created', { id: convId })

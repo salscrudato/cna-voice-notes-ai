@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { db } from '../firebase'
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, limit } from 'firebase/firestore'
+import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, limit, deleteDoc, doc } from 'firebase/firestore'
 import { logger } from './logger'
 import { retryWithBackoff } from '../utils/retry'
 import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider } from '../types'
@@ -156,6 +156,55 @@ class FirestoreChatManager {
       throw error
     }
   }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    try {
+      logger.info('Deleting conversation', { conversationId })
+
+      // Delete all messages for this conversation
+      const messagesQuery = query(
+        collection(db, this.messagesCollection),
+        where('conversationId', '==', conversationId)
+      )
+      const messagesSnapshot = await getDocs(messagesQuery)
+
+      for (const messageDoc of messagesSnapshot.docs) {
+        await deleteDoc(messageDoc.ref)
+      }
+
+      logger.debug('Messages deleted', { count: messagesSnapshot.docs.length })
+
+      // Delete the conversation document
+      await deleteDoc(doc(db, this.conversationsCollection, conversationId))
+
+      logger.info('Conversation deleted successfully', { conversationId })
+    } catch (error) {
+      logger.error('Error deleting conversation', error)
+      throw error
+    }
+  }
+
+  async deleteEmptyConversations(): Promise<number> {
+    try {
+      logger.info('Starting cleanup of empty conversations')
+
+      const allConversations = await this.getAllConversations(1000)
+      let deletedCount = 0
+
+      for (const conversation of allConversations) {
+        if (conversation.messageCount === 0) {
+          await this.deleteConversation(conversation.id)
+          deletedCount++
+        }
+      }
+
+      logger.info('Cleanup completed', { deletedCount })
+      return deletedCount
+    } catch (error) {
+      logger.error('Error during cleanup', error)
+      throw error
+    }
+  }
 }
 
 // Main chat service
@@ -212,6 +261,14 @@ export class ChatService {
 
   async getAllConversations(): Promise<Conversation[]> {
     return this.firestoreManager.getAllConversations()
+  }
+
+  async deleteConversation(conversationId: string): Promise<void> {
+    return this.firestoreManager.deleteConversation(conversationId)
+  }
+
+  async deleteEmptyConversations(): Promise<number> {
+    return this.firestoreManager.deleteEmptyConversations()
   }
 
   setProvider(provider: IChatProvider): void {
