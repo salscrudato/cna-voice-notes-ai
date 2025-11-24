@@ -98,7 +98,7 @@ const AudioUploadPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white">
-      {/* Header */}
+      {/* Header with improved visual hierarchy */}
       <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4">
           <button
@@ -108,10 +108,13 @@ const AudioUploadPage: React.FC = () => {
           >
             <FiArrowLeft size={20} />
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-            <FiMic size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
-            <span className="truncate">Upload Audio</span>
-          </h1>
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
+              <FiMic size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+              <span className="truncate">Upload Audio</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">Upload voice notes for AI analysis</p>
+          </div>
         </div>
       </div>
 
@@ -141,7 +144,7 @@ const AudioUploadPage: React.FC = () => {
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center transition-all duration-300 ${
               isDragging
-                ? 'border-blue-500 bg-blue-50 shadow-xl shadow-blue-500/30 scale-105 -translate-y-2'
+                ? 'border-blue-500 bg-blue-50 shadow-2xl shadow-blue-500/40 scale-105 -translate-y-2'
                 : 'border-slate-300 bg-white hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105 hover:-translate-y-1'
             }`}
             role="region"
@@ -214,7 +217,7 @@ const AudioUploadPage: React.FC = () => {
                 />
                 <label
                   htmlFor="audio-input"
-                  className="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 cursor-pointer font-semibold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 text-sm"
+                  className="inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl transition-all duration-200 cursor-pointer font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 text-sm focus-visible-ring"
                 >
                   Select File
                 </label>

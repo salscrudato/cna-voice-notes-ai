@@ -37,10 +37,10 @@ const LandingHeroComponent: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex gap-3 sm:gap-4 flex-wrap pt-6">
+            <div className="flex gap-3 sm:gap-4 flex-wrap pt-8">
               <button
                 onClick={() => navigate('/chat')}
-                className="group px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 rounded-xl font-bold shadow-xl shadow-cyan-500/60 hover:shadow-2xl hover:shadow-cyan-400/80 hover:from-cyan-300 hover:to-blue-400 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center gap-2 text-base sm:text-lg focus-visible-ring"
+                className="group px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 rounded-xl font-bold shadow-xl shadow-cyan-500/60 hover:shadow-2xl hover:shadow-cyan-400/80 hover:from-cyan-300 hover:to-blue-400 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 text-base sm:text-lg focus-visible-ring"
               >
                 <span>Start Chatting</span>
                 <FiArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />

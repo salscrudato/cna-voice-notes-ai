@@ -134,7 +134,7 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
         )}
       </div>
 
-      {/* Navigation */}
+      {/* Navigation with improved visual indicators */}
       <div className="border-t border-slate-200 p-3 space-y-2 bg-gradient-to-b from-white to-slate-50">
         <button
           onClick={() => navigate('/history')}
@@ -148,7 +148,12 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
         >
           <FiClock size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
           <span>History</span>
-          {isOnPage('/history') && <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />}
+          {isOnPage('/history') && (
+            <div className="ml-auto flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" aria-hidden="true" />
+            </div>
+          )}
         </button>
         <button
           onClick={() => navigate('/upload')}
@@ -162,7 +167,12 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
         >
           <FiUploadCloud size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
           <span>Upload</span>
-          {isOnPage('/upload') && <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />}
+          {isOnPage('/upload') && (
+            <div className="ml-auto flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" aria-hidden="true" />
+            </div>
+          )}
         </button>
         <button
           onClick={() => navigate('/')}
@@ -176,7 +186,12 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
         >
           <FiHome size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
           <span>Home</span>
-          {isOnPage('/') && <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />}
+          {isOnPage('/') && (
+            <div className="ml-auto flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" aria-hidden="true" />
+            </div>
+          )}
         </button>
       </div>
     </nav>

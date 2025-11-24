@@ -68,7 +68,7 @@ const ChatHistoryPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-white to-slate-50">
-      {/* Header */}
+      {/* Header with improved visual hierarchy */}
       <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
           <button
@@ -78,12 +78,15 @@ const ChatHistoryPage: React.FC = () => {
           >
             <FiArrowLeft size={20} />
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-            <FiBook size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
-            <span className="truncate">Chat History</span>
-          </h1>
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
+              <FiBook size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+              <span className="truncate">Chat History</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">{filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
-        {/* Search Bar */}
+        {/* Enhanced Search Bar */}
         <div className="relative">
           <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" size={16} aria-hidden="true" />
           <input
@@ -101,11 +104,25 @@ const ChatHistoryPage: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-5xl mx-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center animate-fade-in">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-                <p className="text-slate-600 font-medium">Loading conversations...</p>
-              </div>
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 animate-pulse"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="h-5 bg-slate-200 rounded-lg w-3/4" />
+                      <div className="flex items-center gap-3">
+                        <div className="h-4 bg-slate-200 rounded w-24" />
+                        <div className="w-1 h-1 bg-slate-300 rounded-full" />
+                        <div className="h-4 bg-slate-200 rounded w-32" />
+                      </div>
+                    </div>
+                    <div className="h-8 w-8 bg-slate-200 rounded flex-shrink-0" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="flex items-center justify-center h-64">
@@ -119,16 +136,17 @@ const ChatHistoryPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredConversations.map((conv) => (
+              {filteredConversations.map((conv, index) => (
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv.id)}
                   className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/15 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-1 focus-visible-ring"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
-                        <FiMessageSquare size={16} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+                        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">{conv.title}</span>
                       </h3>
                       <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
@@ -145,11 +163,11 @@ const ChatHistoryPage: React.FC = () => {
                     </div>
                     <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}
-                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0"
+                      className="p-1.5 hover:bg-red-50 rounded transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
                       aria-label="Delete conversation"
                       type="button"
                     >
-                      <FiTrash2 size={16} className="text-red-500 dark:text-red-400 transition-transform sm:w-[18px] sm:h-[18px]" />
+                      <FiTrash2 size={16} className="text-red-500 transition-transform" />
                     </button>
                   </div>
                 </div>

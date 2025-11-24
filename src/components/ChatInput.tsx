@@ -40,25 +40,27 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
   return (
     <div className="border-t border-slate-200 p-4 sm:p-6 bg-gradient-to-b from-white to-slate-50">
       <div className="flex gap-3 sm:gap-4 max-w-4xl mx-auto items-end">
-        <textarea
-          value={value}
-          onChange={(e) => {
-            if (e.target.value.length <= maxChars) {
-              onChange(e.target.value)
-            }
-          }}
-          onKeyPress={onKeyPress}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask me anything..."
-          rows={UI.MESSAGE_INPUT_ROWS}
-          disabled={isLoading}
-          maxLength={maxChars}
-          className="flex-1 px-5 py-3.5 bg-white border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg focus:shadow-xl"
-          style={{ maxHeight: `${UI.MESSAGE_INPUT_MAX_HEIGHT}px` }}
-          aria-label="Message input"
-          aria-describedby="send-button char-count"
-          aria-busy={isLoading}
-        />
+        <div className="flex-1 relative">
+          <textarea
+            value={value}
+            onChange={(e) => {
+              if (e.target.value.length <= maxChars) {
+                onChange(e.target.value)
+              }
+            }}
+            onKeyPress={onKeyPress}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask me anything..."
+            rows={UI.MESSAGE_INPUT_ROWS}
+            disabled={isLoading}
+            maxLength={maxChars}
+            className="w-full px-5 py-3.5 bg-white border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg focus:shadow-xl"
+            style={{ maxHeight: `${UI.MESSAGE_INPUT_MAX_HEIGHT}px` }}
+            aria-label="Message input"
+            aria-describedby="send-button char-count"
+            aria-busy={isLoading}
+          />
+        </div>
         <button
           id="send-button"
           onClick={handleClick}

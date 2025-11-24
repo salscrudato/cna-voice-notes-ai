@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, memo, useState, useCallback } from 'react'
 import { FiCopy, FiCheck } from 'react-icons/fi'
 import { MessageRenderer } from './MessageRenderer'
-import { LoadingSpinner } from './LoadingSpinner'
 import { UI } from '../constants'
 import { formatTime } from '../utils/formatting'
 import type { ChatMessage } from '../types'
@@ -41,8 +40,11 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoadin
               </div>
             </div>
             <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Welcome to Marlamade</h2>
-            <p className="text-slate-600 mb-4 text-lg sm:text-xl font-semibold">Start a conversation to begin</p>
+            <p className="text-slate-600 mb-6 text-lg sm:text-xl font-semibold">Start a conversation to begin</p>
             <p className="text-slate-500 text-base sm:text-lg leading-relaxed">Ask questions about your underwriting conversations and voice notes to get AI-powered insights instantly</p>
+            <div className="mt-8 pt-8 border-t border-slate-200">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">💡 Tip: Use the upload feature to add voice notes for analysis</p>
+            </div>
           </div>
         </div>
       )}
@@ -95,7 +97,22 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoadin
         </div>
       ))}
 
-      {isLoading && <LoadingSpinner />}
+      {isLoading && (
+        <div className="flex justify-start animate-slide-in-left">
+          <div className="bg-slate-100 text-slate-900 px-5 py-3.5 rounded-2xl rounded-bl-none shadow-md border border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5 items-center h-5">
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0s' }} aria-hidden="true" />
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0.15s' }} aria-hidden="true" />
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0.3s' }} aria-hidden="true" />
+              </div>
+              <span className="text-sm font-semibold text-slate-700 tracking-wide">
+                Thinking<span className="inline-block animate-thinking-dots w-3 text-left">.</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div ref={messagesEndRef} />
     </main>
