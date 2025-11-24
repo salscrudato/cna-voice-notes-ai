@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { chatService } from '../services/chatService'
+import { titleGenerationService } from '../services/titleGenerationService'
 import { logger } from '../services/logger'
 import { getApiKeyErrorMessage } from '../services/config'
 import { generateTitleFromMessage } from '../utils/titleGenerator'
@@ -151,6 +152,17 @@ const MainChatPage: React.FC = () => {
 
       logger.info('API response received', { length: assistantResponse.length })
       clearError()
+
+      // Generate AI-powered 3-word title from the exchange
+      try {
+        const aiTitle = await titleGenerationService.generateTitle(userMessage, assistantResponse)
+        logger.info('Generated AI title', { title: aiTitle })
+        await chatService.updateConversationTitle(convId, aiTitle)
+        logger.info('Conversation title updated', { id: convId, title: aiTitle })
+      } catch (titleError) {
+        logger.warn('Failed to generate AI title', titleError)
+        // Continue without title update - not critical
+      }
 
       // Reload messages from Firestore to get the persisted versions with real IDs
       logger.debug('Reloading messages from Firestore')
