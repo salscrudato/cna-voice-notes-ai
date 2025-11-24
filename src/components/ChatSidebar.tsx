@@ -2,6 +2,7 @@ import React, { useMemo, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Conversation } from '../types'
 import { FiPlus, FiClock, FiUploadCloud, FiHome } from 'react-icons/fi'
+import { ConversationItem } from './ConversationItem'
 
 interface ChatSidebarProps {
   isOpen: boolean
@@ -9,6 +10,8 @@ interface ChatSidebarProps {
   currentConversationId: string | null
   onNewConversation: () => void
   onSelectConversation: (id: string) => void
+  onDeleteConversation: (id: string) => void
+  onRenameConversation: (id: string, newTitle: string) => void
 }
 
 const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
@@ -17,31 +20,24 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
   currentConversationId,
   onNewConversation,
   onSelectConversation,
+  onDeleteConversation,
+  onRenameConversation,
 }) => {
   const navigate = useNavigate()
 
   const conversationsList = useMemo(
     () =>
       conversations.map((conv) => (
-        <button
+        <ConversationItem
           key={conv.id}
-          onClick={() => onSelectConversation(conv.id)}
-          className={`w-full text-left px-3 py-3 rounded-lg transition-all duration-200 truncate text-sm group font-medium ${
-            currentConversationId === conv.id
-              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-lg hover:scale-105 active:scale-95'
-              : 'text-slate-300 hover:bg-slate-700/60 hover:text-slate-100 hover:scale-105 active:scale-95'
-          }`}
-          title={conv.title}
-          aria-label={`Load conversation: ${conv.title}`}
-          aria-current={currentConversationId === conv.id ? 'page' : undefined}
-        >
-          <span className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full transition-all flex-shrink-0 ${currentConversationId === conv.id ? 'bg-white scale-125' : 'bg-slate-500 group-hover:bg-slate-300'}`} aria-hidden="true" />
-            <span className="truncate">{conv.title}</span>
-          </span>
-        </button>
+          conversation={conv}
+          isActive={currentConversationId === conv.id}
+          onSelect={onSelectConversation}
+          onDelete={onDeleteConversation}
+          onRename={onRenameConversation}
+        />
       )),
-    [conversations, currentConversationId, onSelectConversation]
+    [conversations, currentConversationId, onSelectConversation, onDeleteConversation, onRenameConversation]
   )
 
   return (

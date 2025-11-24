@@ -137,6 +137,40 @@ const MainChatPage: React.FC = () => {
     }
   }, [handleSendMessage])
 
+  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+    try {
+      logger.info('Deleting conversation', { conversationId })
+      await chatService.deleteConversation(conversationId)
+
+      // If the deleted conversation was active, clear it
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null)
+        setMessages([])
+      }
+
+      // Reload conversations
+      await loadConversations()
+      logger.info('Conversation deleted successfully')
+    } catch (error) {
+      logger.error('Failed to delete conversation', error)
+      alert('Failed to delete conversation')
+    }
+  }, [currentConversationId, setCurrentConversationId, setMessages, loadConversations])
+
+  const handleRenameConversation = useCallback(async (conversationId: string, newTitle: string) => {
+    try {
+      logger.info('Renaming conversation', { conversationId, newTitle })
+      await chatService.updateConversationTitle(conversationId, newTitle)
+
+      // Reload conversations to reflect the change
+      await loadConversations()
+      logger.info('Conversation renamed successfully')
+    } catch (error) {
+      logger.error('Failed to rename conversation', error)
+      alert('Failed to rename conversation')
+    }
+  }, [loadConversations])
+
   return (
     <div className="flex h-screen bg-white">
       <ChatSidebar
@@ -145,6 +179,8 @@ const MainChatPage: React.FC = () => {
         currentConversationId={currentConversationId}
         onNewConversation={handleNewConversation}
         onSelectConversation={handleSelectConversation}
+        onDeleteConversation={handleDeleteConversation}
+        onRenameConversation={handleRenameConversation}
       />
 
       <div className="flex-1 flex flex-col">

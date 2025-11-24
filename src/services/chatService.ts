@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import { db } from '../firebase'
-import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, limit, deleteDoc, doc } from 'firebase/firestore'
+import { collection, addDoc, query, where, orderBy, getDocs, Timestamp, limit, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { logger } from './logger'
 import { retryWithBackoff } from '../utils/retry'
 import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider } from '../types'
@@ -205,6 +205,22 @@ class FirestoreChatManager {
       throw error
     }
   }
+
+  async updateConversationTitle(conversationId: string, newTitle: string): Promise<void> {
+    try {
+      logger.info('Updating conversation title', { conversationId, newTitle })
+
+      await updateDoc(doc(db, this.conversationsCollection, conversationId), {
+        title: newTitle,
+        updatedAt: Timestamp.now(),
+      })
+
+      logger.info('Conversation title updated', { conversationId })
+    } catch (error) {
+      logger.error('Error updating conversation title', error)
+      throw error
+    }
+  }
 }
 
 // Main chat service
@@ -269,6 +285,10 @@ export class ChatService {
 
   async deleteEmptyConversations(): Promise<number> {
     return this.firestoreManager.deleteEmptyConversations()
+  }
+
+  async updateConversationTitle(conversationId: string, newTitle: string): Promise<void> {
+    return this.firestoreManager.updateConversationTitle(conversationId, newTitle)
   }
 
   setProvider(provider: IChatProvider): void {
