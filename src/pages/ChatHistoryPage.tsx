@@ -69,7 +69,7 @@ const ChatHistoryPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-gradient-to-b from-white to-slate-50">
       {/* Header */}
-      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
           <button
             onClick={() => navigate('/chat')}
@@ -78,8 +78,8 @@ const ChatHistoryPage: React.FC = () => {
           >
             <FiArrowLeft size={20} />
           </button>
-          <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-            <FiBook size={20} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
+            <FiBook size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
             <span className="truncate">Chat History</span>
           </h1>
         </div>
@@ -91,7 +91,7 @@ const ChatHistoryPage: React.FC = () => {
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400"
+            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 shadow-sm hover:shadow-md"
             aria-label="Search conversations"
           />
         </div>
@@ -123,15 +123,15 @@ const ChatHistoryPage: React.FC = () => {
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv.id)}
-                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-0.5 focus-visible-ring"
+                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/15 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-1 focus-visible-ring"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
                         <FiMessageSquare size={16} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">{conv.title}</span>
                       </h3>
-                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-600 transition-colors">
+                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
                         <div className="flex items-center gap-1">
                           <FiClock size={14} className="flex-shrink-0" aria-hidden="true" />
                           <span>{formatDate(conv.createdAt)}</span>

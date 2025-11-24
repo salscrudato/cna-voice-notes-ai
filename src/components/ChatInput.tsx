@@ -53,7 +53,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
           rows={UI.MESSAGE_INPUT_ROWS}
           disabled={isLoading}
           maxLength={maxChars}
-          className="flex-1 px-5 py-3.5 bg-white border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md focus:shadow-lg"
+          className="flex-1 px-5 py-3.5 bg-white border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 disabled:opacity-60 disabled:cursor-not-allowed shadow-md hover:shadow-lg focus:shadow-xl"
           style={{ maxHeight: `${UI.MESSAGE_INPUT_MAX_HEIGHT}px` }}
           aria-label="Message input"
           aria-describedby="send-button char-count"
@@ -66,7 +66,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({
           className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 flex-shrink-0 font-medium touch-target ${
             isDisabled
               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg hover:scale-110 active:scale-95'
+              : 'bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95'
           }`}
           aria-label={isLoading ? 'Sending message' : 'Send message'}
           aria-busy={isLoading}

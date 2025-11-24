@@ -83,14 +83,14 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
       {/* Logo & Branding */}
       <div className="p-4 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50">
         <div className="flex items-center gap-2 mb-5 group cursor-pointer hover:scale-105 transition-transform duration-300">
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
             <span className="text-white font-bold text-xs">CNA</span>
           </div>
-          <span className="font-semibold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">Marlamade</span>
+          <span className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">Marlamade</span>
         </div>
         <button
           onClick={onNewConversation}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 focus-visible-ring"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 focus-visible-ring"
           aria-label="Start a new chat conversation"
         >
           <FiPlus size={18} aria-hidden="true" />
@@ -140,7 +140,7 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
           onClick={() => navigate('/history')}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm group hover:scale-105 active:scale-95 focus-visible-ring ${
             isOnPage('/history')
-              ? 'bg-blue-50 text-blue-600 font-medium shadow-sm border border-blue-200'
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 font-semibold shadow-md border border-blue-300'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
           aria-label="View conversation history"
@@ -154,7 +154,7 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
           onClick={() => navigate('/upload')}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm group hover:scale-105 active:scale-95 focus-visible-ring ${
             isOnPage('/upload')
-              ? 'bg-blue-50 text-blue-600 font-medium shadow-sm border border-blue-200'
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 font-semibold shadow-md border border-blue-300'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
           aria-label="Upload audio files"
@@ -168,7 +168,7 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
           onClick={() => navigate('/')}
           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm group hover:scale-105 active:scale-95 focus-visible-ring ${
             isOnPage('/')
-              ? 'bg-blue-50 text-blue-600 font-medium shadow-sm border border-blue-200'
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 font-semibold shadow-md border border-blue-300'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
           aria-label="Go to home page"

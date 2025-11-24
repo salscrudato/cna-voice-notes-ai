@@ -37,19 +37,19 @@ const LandingHeroComponent: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex gap-3 sm:gap-4 flex-wrap pt-4">
+            <div className="flex gap-3 sm:gap-4 flex-wrap pt-6">
               <button
                 onClick={() => navigate('/chat')}
-                className="group px-8 sm:px-10 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 rounded-xl font-semibold shadow-lg shadow-cyan-500/50 hover:shadow-2xl hover:shadow-cyan-400/70 hover:from-cyan-400 hover:to-blue-400 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 text-sm sm:text-base focus-visible-ring"
+                className="group px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 rounded-xl font-bold shadow-xl shadow-cyan-500/60 hover:shadow-2xl hover:shadow-cyan-400/80 hover:from-cyan-300 hover:to-blue-400 transition-all duration-300 hover:scale-110 active:scale-95 flex items-center gap-2 text-base sm:text-lg focus-visible-ring"
               >
                 <span>Start Chatting</span>
-                <FiArrowRight className="group-hover:translate-x-1 transition-transform" size={18} />
+                <FiArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
               </button>
               <button
                 onClick={() => navigate('/upload')}
-                className="group px-8 sm:px-10 py-3.5 sm:py-4 bg-slate-800 text-cyan-300 border-2 border-cyan-500/50 rounded-xl font-semibold hover:bg-slate-700 hover:border-cyan-400 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-cyan-500/30 text-sm sm:text-base focus-visible-ring flex items-center gap-2"
+                className="group px-8 sm:px-10 py-4 sm:py-5 bg-slate-700/80 text-cyan-200 border-2 border-cyan-400/60 rounded-xl font-semibold hover:bg-slate-600 hover:border-cyan-300 hover:text-cyan-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-cyan-500/40 text-base sm:text-lg focus-visible-ring flex items-center gap-2 backdrop-blur-sm"
               >
-                <FiPlay size={16} />
+                <FiPlay size={18} />
                 <span>Upload Audio</span>
               </button>
             </div>

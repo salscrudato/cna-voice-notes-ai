@@ -99,17 +99,17 @@ const AudioUploadPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Header */}
-      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-white shadow-sm">
+      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate('/chat')}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-700 hover:text-slate-900 hover:scale-110 active:scale-95 flex-shrink-0"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-700 hover:text-slate-900 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
             aria-label="Go back to chat"
           >
             <FiArrowLeft size={20} />
           </button>
-          <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-            <FiMic size={20} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
+            <FiMic size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
             <span className="truncate">Upload Audio</span>
           </h1>
         </div>
@@ -141,29 +141,29 @@ const AudioUploadPage: React.FC = () => {
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-3xl p-8 sm:p-16 text-center transition-all duration-300 ${
               isDragging
-                ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/20 scale-105 -translate-y-1'
-                : 'border-slate-300 bg-white hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/10 hover:scale-105 hover:-translate-y-0.5'
+                ? 'border-blue-500 bg-blue-50 shadow-xl shadow-blue-500/30 scale-105 -translate-y-2'
+                : 'border-slate-300 bg-white hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105 hover:-translate-y-1'
             }`}
             role="region"
             aria-label="Audio upload area"
           >
             {uploadProgress === 100 && uploadedVoiceNoteId ? (
               <div className="space-y-6 animate-fade-in">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all duration-300 animate-pulse-soft flex-shrink-0">
-                  <FiCheck size={32} className="text-green-600" aria-hidden="true" />
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 animate-pulse-soft flex-shrink-0">
+                  <FiCheck size={40} className="text-white" aria-hidden="true" />
                 </div>
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2 justify-center">
-                    <FiCheck size={20} className="text-green-600 flex-shrink-0" aria-hidden="true" />
+                  <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3 flex items-center gap-2 justify-center">
+                    <FiCheck size={24} className="text-green-600 flex-shrink-0" aria-hidden="true" />
                     Upload Complete!
                   </h3>
-                  <p className="text-slate-600 text-base font-medium truncate">{fileName}</p>
-                  <p className="text-slate-500 text-sm mt-4">Redirecting to chat in a moment...</p>
+                  <p className="text-slate-600 text-lg font-semibold truncate">{fileName}</p>
+                  <p className="text-slate-500 text-base mt-4">Redirecting to chat in a moment...</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
                   <button
                     onClick={() => navigate('/chat', { state: { voiceNoteId: uploadedVoiceNoteId } })}
-                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-200 font-semibold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 text-sm"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 text-base"
                   >
                     Go to Chat Now
                   </button>
