@@ -49,18 +49,27 @@ For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 ```
 src/
-├── pages/              # Main application pages
+├── components/         # Reusable UI components (all memoized)
+│   ├── landing/       # Landing page sub-components
+│   ├── ChatHeader.tsx
+│   ├── ChatInput.tsx
+│   ├── ChatMessages.tsx
+│   ├── ChatSidebar.tsx
+│   └── ... (13 total)
+├── pages/             # Page components (lazy loaded)
 │   ├── LandingPage.tsx
 │   ├── MainChatPage.tsx
 │   ├── ChatHistoryPage.tsx
-│   └── AudioUploadPage.tsx
-├── services/           # API and business logic
-│   └── chatService.ts
-├── types/              # TypeScript definitions
-├── ui/                 # Reusable UI components
-├── firebase.ts         # Firebase configuration
-├── App.tsx             # Router setup
-└── index.css           # Global styles & animations
+│   ├── AudioUploadPage.tsx
+│   └── VoiceNotesPage.tsx
+├── hooks/             # Custom React hooks (6 files)
+├── services/          # Business logic & API (4 files)
+├── utils/             # Utility functions (8 files)
+├── types/             # TypeScript definitions
+├── constants/         # App-wide constants
+├── firebase.ts        # Firebase configuration
+├── App.tsx            # Router setup
+└── index.css          # Global styles & animations
 ```
 
 ## Features

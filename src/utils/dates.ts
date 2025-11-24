@@ -4,6 +4,7 @@
  */
 
 import { DATE_GROUPS } from '../constants'
+import type { Conversation } from '../types'
 
 /**
  * Get the number of days between two dates
@@ -131,5 +132,55 @@ export function formatRelativeTime(date: Date | number): string {
   if (diffHours < 24) return `${diffHours}h ago`
   if (diffDays < 7) return `${diffDays}d ago`
   return d.toLocaleDateString()
+}
+
+// ============================================================================
+// CONVERSATION GROUPING UTILITIES
+// ============================================================================
+
+export type ConversationGroup = 'Today' | 'Yesterday' | 'This Week' | 'This Month' | 'Older'
+export type GroupedConversations = Partial<Record<ConversationGroup, Conversation[]>>
+
+/**
+ * Group conversations by date
+ * @param conversations - Array of conversations to group
+ * @returns Object with conversations grouped by date
+ */
+export function groupConversationsByDate(conversations: Conversation[]): GroupedConversations {
+  const grouped: GroupedConversations = {}
+
+  for (const conversation of conversations) {
+    const group = getDateGroupLabel(conversation.updatedAt) as ConversationGroup
+    if (!grouped[group]) {
+      grouped[group] = []
+    }
+    grouped[group]!.push(conversation)
+  }
+
+  return grouped
+}
+
+/**
+ * Get the order of groups for consistent display
+ * @returns Array of group names in display order
+ */
+export function getGroupOrder(): ConversationGroup[] {
+  return ['Today', 'Yesterday', 'This Week', 'This Month', 'Older']
+}
+
+/**
+ * Get grouped conversations in display order
+ * @param conversations - Array of conversations to group
+ * @returns Array of [groupName, conversations] tuples in display order
+ */
+export function getOrderedGroupedConversations(
+  conversations: Conversation[]
+): Array<[ConversationGroup, Conversation[]]> {
+  const grouped = groupConversationsByDate(conversations)
+  const order = getGroupOrder()
+
+  return order
+    .filter(group => grouped[group] && grouped[group]!.length > 0)
+    .map(group => [group, grouped[group]!])
 }
 

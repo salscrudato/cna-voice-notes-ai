@@ -21,39 +21,7 @@ export function isNotEmpty(text: string): boolean {
   return !isEmpty(text)
 }
 
-/**
- * Validate email format
- * @param email - Email to validate
- * @returns true if valid email format
- */
-export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email)
-}
 
-/**
- * Validate URL format
- * @param url - URL to validate
- * @returns true if valid URL format
- */
-export function isValidUrl(url: string): boolean {
-  try {
-    new URL(url)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Check if a string is a valid UUID
- * @param uuid - UUID to validate
- * @returns true if valid UUID
- */
-export function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  return uuidRegex.test(uuid)
-}
 
 /**
  * Validate message content

@@ -77,12 +77,7 @@ export interface ChatProviderMetadata {
   context?: Record<string, unknown>
 }
 
-/** Configuration for API timeouts and retries */
-export interface APIConfig {
-  requestTimeout: number
-  maxRetries: number
-  retryDelay: number
-}
+
 
 // ============================================================================
 // RESPONSE FORMATTING TYPES

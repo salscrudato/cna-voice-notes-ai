@@ -62,7 +62,9 @@ Or edit `src/services/chatService.ts` directly.
 
 ### Swapping Chat Providers
 
-See `ARCHITECTURE.md` for details on implementing custom providers.
+The application supports multiple chat providers through the `VITE_CHAT_PROVIDER` environment variable:
+- `openai-direct` - Direct OpenAI API calls (development)
+- `proxied` - Backend proxy endpoint (production recommended)
 
 ## Firestore Setup
 

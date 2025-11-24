@@ -2,10 +2,8 @@ import React, { useEffect, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { chatService } from '../services/chatService'
 import { voiceNoteService } from '../services/voiceNoteService'
-import { titleGenerationService } from '../services/titleGenerationService'
 import { logger } from '../services/logger'
 import { getApiKeyErrorMessage } from '../services/config'
-import { generateTitleFromMessage } from '../utils/titleGenerator'
 import { useChatState } from '../hooks/useChatState'
 import { useChatOperations } from '../hooks/useChatOperations'
 import { useUnderwritingFilters } from '../hooks/useUnderwritingFilters'
@@ -156,8 +154,8 @@ const MainChatPage: React.FC = () => {
     let convId = currentConversationId
     if (!convId) {
       try {
-        // Use better title generation from first message
-        const title = generateTitleFromMessage(userMessage)
+        // Generate title from first message (first 50 chars or first sentence)
+        const title = userMessage.split(/[.!?]/)[0].substring(0, 50).trim() || 'New Chat'
         logger.info('Creating new conversation', { title })
         convId = await chatService.createConversation(title)
         logger.info('Conversation created', { id: convId })
@@ -230,17 +228,6 @@ const MainChatPage: React.FC = () => {
 
       logger.info('API response received', { length: assistantResponse.length })
       clearError()
-
-      // Generate AI-powered 3-word title from the exchange
-      try {
-        const aiTitle = await titleGenerationService.generateTitle(userMessage, assistantResponse)
-        logger.info('Generated AI title', { title: aiTitle })
-        await chatService.updateConversationTitle(convId, aiTitle)
-        logger.info('Conversation title updated', { id: convId, title: aiTitle })
-      } catch (titleError) {
-        logger.warn('Failed to generate AI title', titleError)
-        // Continue without title update - not critical
-      }
 
       // Reload messages from Firestore to get the persisted versions with real IDs
       logger.debug('Reloading messages from Firestore')
