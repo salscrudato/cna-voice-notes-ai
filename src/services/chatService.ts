@@ -10,7 +10,6 @@ import {
   createMetadata,
   parseError,
 } from '../utils/responseFormatter'
-import { responseLogger } from '../utils/responseLogger'
 import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider } from '../types'
 
 /**
@@ -98,8 +97,15 @@ class OpenAIChatProvider implements IChatProvider {
       })
 
       // Log successful response
-      responseLogger.logSuccess(metadata, formattedResponse, 'OpenAI response formatted successfully')
-      responseLogger.logTiming('openai', duration, 'OpenAI API call')
+      logger.logResponseSuccess(
+        'openai',
+        duration,
+        retryCount,
+        formattedResponse.length,
+        formattedResponse.contentType,
+        metadata.tokensUsed
+      )
+      logger.logResponseTiming('openai', duration, 'OpenAI API call')
 
       return formattedResponse.content
     } catch (error) {
@@ -111,7 +117,6 @@ class OpenAIChatProvider implements IChatProvider {
   private handleError(error: unknown): never {
     const errorDetails = parseError(error)
     const duration = Date.now() - (this as any).startTime || 0
-    const metadata = createMetadata('openai', duration, 0)
 
     // Map error categories to user-friendly messages
     const errorMessages: Record<string, string> = {
@@ -126,7 +131,14 @@ class OpenAIChatProvider implements IChatProvider {
     const userMessage = errorMessages[errorDetails.category] || errorMessages.unknown
 
     // Log error with structured logging
-    responseLogger.logError(metadata, errorDetails, 'OpenAI API error')
+    logger.logResponseError(
+      'openai',
+      duration,
+      0,
+      errorDetails.code,
+      errorDetails.category,
+      'OpenAI API error'
+    )
 
     // Throw user-friendly error
     throw new Error(userMessage)

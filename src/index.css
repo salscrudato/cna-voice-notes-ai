@@ -306,6 +306,59 @@
     scroll-behavior: smooth;
   }
 
+  /* Improved button hover states */
+  button:not(:disabled) {
+    @apply hover:brightness-105 active:brightness-95;
+  }
+
+  /* Better input focus states */
+  input:focus, textarea:focus {
+    @apply ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* Smooth scrollbar styling for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400;
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-blue-500 text-white;
+  }
+
+  /* Enhanced focus-visible for keyboard navigation */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  button, a, input, textarea, select {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Improved scrollbar styling for dark mode */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-slate-800;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full hover:bg-slate-500;
+  }
+
   /* Reduced motion support for accessibility */
   @media (prefers-reduced-motion: reduce) {
     * {
