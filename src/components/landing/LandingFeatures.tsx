@@ -51,16 +51,16 @@ const LandingFeaturesComponent: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/60 dark:border-slate-700/60 shadow-lg dark:shadow-lg dark:shadow-slate-900/50 hover:shadow-2xl dark:hover:shadow-2xl hover:shadow-blue-500/20 dark:hover:shadow-blue-500/15 transition-all duration-300 hover:-translate-y-2 hover:border-blue-300/80 dark:hover:border-blue-600/80 animate-fade-in-up hover:scale-[1.01] dark:hover:shadow-slate-900/60"
+                className="group relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/60 dark:border-slate-700/60 shadow-lg dark:shadow-lg dark:shadow-slate-900/50 hover:shadow-2xl dark:hover:shadow-2xl hover:shadow-blue-500/30 dark:hover:shadow-blue-500/25 transition-all duration-300 hover:-translate-y-3 hover:border-blue-300/80 dark:hover:border-blue-600/80 animate-fade-in-up hover:scale-[1.02] dark:hover:shadow-slate-900/60 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-950"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/60 dark:to-cyan-900/50 rounded-xl flex items-center justify-center mb-5 group-hover:from-blue-200 group-hover:to-cyan-200 dark:group-hover:from-blue-900/80 dark:group-hover:to-cyan-900/70 transition-all duration-300 flex-shrink-0 group-hover:shadow-lg dark:group-hover:shadow-lg group-hover:shadow-blue-500/40 dark:group-hover:shadow-blue-500/25 group-hover:-translate-y-1 border border-blue-200/50 dark:border-blue-700/50">
-                  <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300" aria-hidden="true" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 via-blue-50 to-cyan-100 dark:from-blue-900/60 dark:via-blue-900/50 dark:to-cyan-900/50 rounded-xl flex items-center justify-center mb-5 group-hover:from-blue-200 group-hover:via-blue-100 group-hover:to-cyan-200 dark:group-hover:from-blue-900/80 dark:group-hover:via-blue-900/70 dark:group-hover:to-cyan-900/70 transition-all duration-300 flex-shrink-0 group-hover:shadow-lg dark:group-hover:shadow-lg group-hover:shadow-blue-500/50 dark:group-hover:shadow-blue-500/35 group-hover:-translate-y-1.5 border border-blue-200/50 dark:border-blue-700/50 group-hover:border-blue-300/80 dark:group-hover:border-blue-600/80">
+                  <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-125 transition-all duration-300" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-50 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-50 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 group-hover:scale-105">
                   {feature.title}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors duration-300">
                   {feature.description}
                 </p>
               </div>

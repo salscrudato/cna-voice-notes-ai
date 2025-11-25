@@ -130,7 +130,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-2xl hover:shadow-amber-500/40 hover:from-amber-500 hover:to-amber-600 hover:-translate-y-0.5 active:shadow-md active:scale-95 active:translate-y-0 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:from-amber-600 disabled:hover:to-amber-700 disabled:hover:-translate-y-0 border border-amber-500/30 hover:border-amber-400/50;
   }
 
-  /* Icon Button - Enhanced with better hover states */
+  /* Icon Button - Enhanced with better hover states and consistent sizing */
   .btn-icon {
     @apply inline-flex items-center justify-center rounded-lg p-2.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:shadow-sm active:scale-95 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:hover:shadow-md dark:focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed;
   }

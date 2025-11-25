@@ -68,9 +68,17 @@ export const useTheme = (): UseThemeReturn => {
   }, [applyTheme])
 
   const toggleTheme = useCallback(() => {
-    const newTheme: Theme = isDarkMode ? 'light' : 'dark'
-    setTheme(newTheme)
-  }, [isDarkMode, setTheme])
+    setThemeState((currentTheme) => {
+      const newTheme: Theme = currentTheme === 'dark' ? 'light' : 'dark'
+      localStorage.setItem('theme', newTheme)
+
+      const shouldBeDark = newTheme === 'dark'
+      setIsDarkMode(shouldBeDark)
+      applyTheme(shouldBeDark)
+
+      return newTheme
+    })
+  }, [applyTheme])
 
   return {
     theme,

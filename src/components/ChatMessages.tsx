@@ -27,10 +27,10 @@ const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy }) 
     <div className="flex flex-col gap-2 max-w-2xl">
       <div className="flex items-end gap-2">
         <div
-          className={`px-5 py-3.5 rounded-2xl transition-all duration-200 ${
+          className={`px-5 py-3.5 rounded-2xl transition-all duration-300 ${
             msg.role === 'user'
-              ? 'bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700 text-white rounded-br-none shadow-md hover:shadow-lg hover:shadow-blue-500/50 hover:-translate-y-1 border border-blue-500/40 hover:border-blue-400/60 hover:scale-[1.01]'
-              : 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 rounded-bl-none shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:-translate-y-0.5 hover:scale-[1.01]'
+              ? 'bg-gradient-to-br from-blue-600 via-blue-600 to-cyan-600 text-white rounded-br-none shadow-md hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-500/40 hover:-translate-y-1.5 hover:scale-[1.01] border border-blue-500/40 hover:border-blue-400/60 active:scale-95'
+              : 'bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 rounded-bl-none shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300/80 dark:hover:border-slate-600/80 hover:-translate-y-1 hover:scale-[1.01]'
           }`}
         >
           {msg.role === 'user' ? (
@@ -42,7 +42,7 @@ const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy }) 
         {msg.role === 'assistant' && (
           <button
             onClick={() => onCopy(msg.id, msg.content)}
-            className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-110 active:scale-95 shadow-sm hover:shadow-md dark:hover:shadow-lg"
+            className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700/60 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-125 active:scale-95 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-300/50 dark:border-slate-600/50 hover:border-slate-400/80 dark:hover:border-slate-500/80 hover:-translate-y-0.5"
             title="Copy message"
             aria-label="Copy message"
             type="button"
@@ -58,7 +58,7 @@ const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy }) 
       {/* Message Timestamp - always visible with improved styling */}
       <div className={`text-xs font-medium transition-opacity duration-200 ${
         msg.role === 'user' ? 'text-right pr-1' : 'text-left pl-1'
-      } ${msg.role === 'user' ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'}`}>
+      } ${msg.role === 'user' ? 'text-blue-100' : 'text-slate-500'}`}>
         {msg.createdAt ? formatTime(msg.createdAt) : ''}
       </div>
     </div>
@@ -107,12 +107,12 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoadin
 
       {isLoading && (
         <div className="flex justify-start animate-slide-in-left" role="status" aria-live="polite" aria-label="AI is thinking">
-          <div className="bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 px-5 py-3.5 rounded-2xl rounded-bl-none shadow-md dark:shadow-lg dark:shadow-slate-900/50 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
+          <div className="bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 px-5 py-3.5 rounded-2xl rounded-bl-none shadow-md dark:shadow-lg dark:shadow-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300/80 dark:hover:border-slate-600/80 transition-all duration-300 hover:shadow-md dark:hover:shadow-lg hover:-translate-y-1">
             <div className="flex items-center gap-3">
               <div className="flex gap-1.5 items-center h-5">
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0s' }} aria-hidden="true" />
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0.15s' }} aria-hidden="true" />
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md animate-wave-dot" style={{ animationDelay: '0.3s' }} aria-hidden="true" />
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0s' }} aria-hidden="true" />
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0.15s' }} aria-hidden="true" />
+                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0.3s' }} aria-hidden="true" />
               </div>
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide">
                 Thinking<span className="inline-block animate-thinking-dots w-3 text-left">.</span>

@@ -238,7 +238,7 @@ const MainChatPage: React.FC = () => {
   }, [loadConversations, setApiError, clearError])
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-950">
+    <div className="flex h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
       <ChatSidebar
         isOpen={sidebarOpen}
         conversations={conversations}
@@ -249,7 +249,7 @@ const MainChatPage: React.FC = () => {
         onRenameConversation={handleRenameConversation}
       />
 
-      <div id="main-content" className="flex-1 flex flex-col bg-white dark:bg-slate-950" tabIndex={-1}>
+      <div id="main-content" className="flex-1 flex flex-col bg-gradient-to-b from-white via-slate-50/30 to-white dark:from-slate-950 dark:via-slate-900/30 dark:to-slate-950 transition-colors duration-300" tabIndex={-1}>
         <ChatHeader
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}

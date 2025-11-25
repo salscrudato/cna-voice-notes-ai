@@ -25,7 +25,7 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
       <div className={`text-center animate-fade-in ${isCompact ? 'max-w-sm' : 'max-w-2xl'}`}>
         {icon && (
           <div className={`mb-8 flex justify-center ${isCompact ? '' : ''}`} aria-hidden="true">
-            <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/40 shadow-lg dark:shadow-lg dark:shadow-blue-500/10 hover:shadow-xl dark:hover:shadow-xl hover:scale-105 transition-all duration-300 rounded-3xl border border-blue-200/50 dark:border-blue-700/50 dark:hover:shadow-blue-500/15">
+            <div className="inline-flex items-center justify-center p-6 bg-gradient-to-br from-blue-100 via-blue-50 to-cyan-100 dark:from-blue-900/40 dark:via-blue-900/30 dark:to-cyan-900/30 shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 dark:hover:shadow-blue-500/20 hover:scale-110 transition-all duration-300 rounded-3xl border border-blue-200/50 dark:border-blue-700/50 hover:border-blue-300/80 dark:hover:border-blue-600/80 hover:-translate-y-2">
               {icon}
             </div>
           </div>
@@ -46,7 +46,7 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
         {action && (
           <button
             onClick={action.onClick}
-            className="btn-primary inline-block hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-500/30 transition-all duration-200"
+            className="btn-primary inline-block hover:shadow-lg hover:shadow-blue-500/40 dark:hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95"
             type="button"
           >
             {action.label}

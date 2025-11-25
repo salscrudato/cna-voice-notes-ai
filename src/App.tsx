@@ -12,7 +12,7 @@ const MainChatPage = lazy(() => import('./pages/MainChatPage').then(m => ({ defa
 
 // Loading fallback component
 const PageLoader = () => (
-  <div className="h-screen flex items-center justify-center bg-white">
+  <div className="h-screen flex items-center justify-center bg-gradient-to-b from-white via-slate-50/50 to-white dark:from-slate-950 dark:via-slate-900/50 dark:to-slate-950 animate-fade-in">
     <LoadingSpinner />
   </div>
 )
