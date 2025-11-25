@@ -1,28 +1,22 @@
 import React, { useEffect, useCallback } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { chatService } from '../services/chatService'
-import { voiceNoteService } from '../services/voiceNoteService'
 import { logger } from '../services/logger'
 import { getApiKeyErrorMessage } from '../services/config'
 import { useChatState } from '../hooks/useChatState'
 import { useChatOperations } from '../hooks/useChatOperations'
-import { useUnderwritingFilters } from '../hooks/useUnderwritingFilters'
+import { useToast } from '../hooks/useToast'
 import { ChatSidebar } from '../components/ChatSidebar'
 import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessages } from '../components/ChatMessages'
 import { ChatInput } from '../components/ChatInput'
-import { UnderwritingFilters } from '../components/UnderwritingFilters'
-import { MetadataInputModal } from '../components/MetadataInputModal'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
 import { API } from '../constants'
-import type { ChatMessage, ConversationMetadata, ChatProviderMetadata } from '../types'
+import type { ChatMessage } from '../types'
 
 const MainChatPage: React.FC = () => {
   const location = useLocation()
-  const navigate = useNavigate()
-  const [linkedVoiceNoteName, setLinkedVoiceNoteName] = React.useState<string | undefined>()
-  const [filtersOpen, setFiltersOpen] = React.useState(false)
-  const [metadataModalOpen, setMetadataModalOpen] = React.useState(false)
+  const { showToast } = useToast()
 
   const {
     conversations,
@@ -46,12 +40,6 @@ const MainChatPage: React.FC = () => {
   } = useChatState()
 
   const {
-    filters,
-    updateFilters,
-    applyFilters,
-  } = useUnderwritingFilters()
-
-  const {
     loadConversations,
     loadMessages,
     handleSelectConversation,
@@ -64,61 +52,39 @@ const MainChatPage: React.FC = () => {
     setApiError,
   })
 
-  // Handle voice note navigation: create conversation and link voice note
-  const handleVoiceNoteNavigation = useCallback(async (voiceNoteId: string) => {
+  // Handle new conversation creation
+  const handleNewConversation = useCallback(async () => {
     try {
-      logger.info('Processing voice note navigation', { voiceNoteId })
-
-      // Fetch voice note details
-      const voiceNote = await voiceNoteService.getVoiceNoteById(voiceNoteId)
-      if (!voiceNote) {
-        logger.error('Voice note not found', { voiceNoteId })
-        setApiError('Voice note not found. Please try uploading again.')
-        return
-      }
-
-      // Create a new conversation for this voice note
-      const title = `Voice Note – ${voiceNote.fileName.split('.')[0]}`
-      logger.info('Creating conversation for voice note', { title, voiceNoteId })
-      const conversationId = await chatService.createConversation(title, {
-        tags: ['voice_note'],
-      })
-
-      // Link voice note to conversation
-      await voiceNoteService.linkVoiceNoteToConversation(voiceNoteId, conversationId)
-      logger.info('Voice note linked to conversation', { voiceNoteId, conversationId })
-
-      // Set as current conversation and display voice note name
+      const title = `Chat ${new Date().toLocaleDateString()}`
+      logger.info('Creating new conversation', { title })
+      const conversationId = await chatService.createConversation(title)
       setCurrentConversationId(conversationId)
-      setLinkedVoiceNoteName(voiceNote.fileName)
+      setMessages([])
       await loadConversations()
-
-      // Clear navigation state to prevent reprocessing on refresh
-      navigate('/chat', { replace: true })
-
-      logger.info('Voice note navigation completed successfully', { conversationId })
+      logger.info('New conversation created successfully', { conversationId })
+      showToast('New conversation created', 'success', 2000)
     } catch (error) {
-      logger.error('Error processing voice note navigation', error)
-      const errorMsg = error instanceof Error ? error.message : 'Failed to process voice note'
-      setApiError(`Error: ${errorMsg}`)
+      logger.error('Failed to create conversation', error)
+      const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
+      setApiError(`Error creating conversation: ${errorMsg}`)
+      showToast(errorMsg, 'error', 4000)
     }
-  }, [setCurrentConversationId, loadConversations, navigate, setApiError, setLinkedVoiceNoteName])
+  }, [setCurrentConversationId, setMessages, loadConversations, setApiError, showToast])
+
+
 
   // Load conversations on mount and handle navigation state
   useEffect(() => {
     initializeChat()
 
-    // Handle navigation state: conversationId or voiceNoteId
-    const navigationState = location.state as { conversationId?: string; voiceNoteId?: string } | null
+    // Handle navigation state: conversationId
+    const navigationState = location.state as { conversationId?: string } | null
 
     if (navigationState?.conversationId) {
       setCurrentConversationId(navigationState.conversationId)
       logger.debug('Loaded conversation from navigation state', { conversationId: navigationState.conversationId })
-    } else if (navigationState?.voiceNoteId) {
-      // Handle voice note upload: create new conversation and link voice note
-      handleVoiceNoteNavigation(navigationState.voiceNoteId)
     }
-  }, [initializeChat, location.state, setCurrentConversationId, handleVoiceNoteNavigation])
+  }, [initializeChat, location.state, setCurrentConversationId])
 
   // Load messages when conversation changes
   useEffect(() => {
@@ -192,34 +158,7 @@ const MainChatPage: React.FC = () => {
     try {
       logger.info('Sending message to API')
 
-      // Build metadata for the chat provider
-      let providerMetadata: ChatProviderMetadata | undefined
-      try {
-        const voiceNotes = await voiceNoteService.getVoiceNotesByConversation(convId)
-        if (voiceNotes.length > 0) {
-          const voiceNoteIds = voiceNotes.map(vn => vn.id)
-          const readyNotes = voiceNotes.filter(vn => vn.status === 'ready')
-
-          providerMetadata = {
-            conversationId: convId,
-            voiceNoteIds,
-            context: {
-              voiceNoteCount: voiceNotes.length,
-              readyTranscripts: readyNotes.length,
-              transcriptSummaries: readyNotes
-                .filter(vn => vn.transcriptSummary)
-                .map(vn => vn.transcriptSummary)
-                .join(' | '),
-            },
-          }
-          logger.debug('Built provider metadata with voice notes', { voiceNoteCount: voiceNotes.length })
-        }
-      } catch (metadataError) {
-        logger.warn('Failed to build provider metadata', metadataError)
-        // Continue without metadata - not critical
-      }
-
-      const assistantResponse = await chatService.sendMessage(convId, userMessage, providerMetadata)
+      const assistantResponse = await chatService.sendMessage(convId, userMessage)
       clearTimeout(timeoutId)
 
       if (!assistantResponse || assistantResponse.trim().length === 0) {
@@ -228,6 +167,7 @@ const MainChatPage: React.FC = () => {
 
       logger.info('API response received', { length: assistantResponse.length })
       clearError()
+      showToast('Message sent successfully', 'success', 2000)
 
       // Reload messages from Firestore to get the persisted versions with real IDs
       logger.debug('Reloading messages from Firestore')
@@ -238,41 +178,13 @@ const MainChatPage: React.FC = () => {
       logger.error('Failed to send message', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to send message'
       setApiError(`Error: ${errorMsg}`)
+      showToast(errorMsg, 'error', 4000)
       // Remove optimistic message on error
       setMessages(prev => prev.filter(msg => msg.id !== optimisticUserMessage.id))
     } finally {
       setIsLoading(false)
     }
-  }, [inputValue, currentConversationId, loadConversations, loadMessages, isApiKeyMissing, resetInput, clearError, setCurrentConversationId, setIsLoading, setApiError, setMessages])
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }, [handleSendMessage])
-
-  // Wrapper for new conversation that shows metadata modal
-  const handleNewConversationWithMetadata = useCallback(() => {
-    setMetadataModalOpen(true)
-  }, [])
-
-  // Handle metadata submission
-  const handleMetadataSubmit = useCallback(async (metadata: Partial<ConversationMetadata>) => {
-    try {
-      const title = `Chat ${new Date().toLocaleDateString()}`
-      logger.info('Creating new conversation with metadata', { title, hasMetadata: Object.keys(metadata).length > 0 })
-      const conversationId = await chatService.createConversation(title, metadata)
-      setCurrentConversationId(conversationId)
-      setMessages([])
-      await loadConversations()
-      logger.info('New conversation created successfully', { conversationId })
-    } catch (error) {
-      logger.error('Failed to create conversation', error)
-      const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
-      setApiError(`Error creating conversation: ${errorMsg}`)
-    }
-  }, [setCurrentConversationId, setMessages, loadConversations, setApiError])
+  }, [inputValue, currentConversationId, loadConversations, loadMessages, isApiKeyMissing, resetInput, clearError, setCurrentConversationId, setIsLoading, setApiError, setMessages, showToast])
 
   const handleDeleteConversation = useCallback(async (conversationId: string) => {
     try {
@@ -288,12 +200,14 @@ const MainChatPage: React.FC = () => {
       // Reload conversations
       await loadConversations()
       logger.info('Conversation deleted successfully')
+      showToast('Conversation deleted', 'success', 2000)
     } catch (error) {
       logger.error('Failed to delete conversation', error)
       const errorMsg = error instanceof Error ? error.message : 'Failed to delete conversation'
       setApiError(`Failed to delete conversation: ${errorMsg}`)
+      showToast(errorMsg, 'error', 4000)
     }
-  }, [currentConversationId, setCurrentConversationId, setMessages, loadConversations, setApiError])
+  }, [currentConversationId, setCurrentConversationId, setMessages, loadConversations, setApiError, showToast])
 
   const handleRenameConversation = useCallback(async (conversationId: string, newTitle: string) => {
     const trimmedTitle = newTitle.trim()
@@ -323,60 +237,37 @@ const MainChatPage: React.FC = () => {
     }
   }, [loadConversations, setApiError, clearError])
 
-  // Apply filters to conversations
-  const filteredConversations = React.useMemo(() => {
-    return applyFilters(conversations)
-  }, [conversations, applyFilters])
-
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white dark:bg-slate-950">
       <ChatSidebar
         isOpen={sidebarOpen}
-        conversations={filteredConversations}
+        conversations={conversations}
         currentConversationId={currentConversationId}
-        onNewConversation={handleNewConversationWithMetadata}
+        onNewConversation={handleNewConversation}
         onSelectConversation={handleSelectConversation}
         onDeleteConversation={handleDeleteConversation}
         onRenameConversation={handleRenameConversation}
       />
 
-      {/* Underwriting Filters Panel */}
-      <UnderwritingFilters
-        onFilterChange={updateFilters}
-        activeFilters={filters}
-        isOpen={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-      />
-
-      <div id="main-content" className="flex-1 flex flex-col" tabIndex={-1}>
+      <div id="main-content" className="flex-1 flex flex-col bg-white dark:bg-slate-950" tabIndex={-1}>
         <ChatHeader
           sidebarOpen={sidebarOpen}
           onToggleSidebar={toggleSidebar}
           currentConversationTitle={conversations.find(c => c.id === currentConversationId)?.title}
-          linkedVoiceNoteName={linkedVoiceNoteName}
-          onOpenFilters={() => setFiltersOpen(true)}
         />
         <ApiErrorBanner error={apiError} onDismiss={clearError} />
 
-        {/* Chat container - clean, focused layout */}
+        {/* Chat container */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <ChatMessages messages={messages} isLoading={isLoading} />
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
-            onKeyPress={handleKeyPress}
             onSend={handleSendMessage}
             isLoading={isLoading}
           />
         </div>
       </div>
-
-      {/* Metadata Input Modal */}
-      <MetadataInputModal
-        isOpen={metadataModalOpen}
-        onClose={() => setMetadataModalOpen(false)}
-        onSubmit={handleMetadataSubmit}
-      />
     </div>
   )
 }

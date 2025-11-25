@@ -16,7 +16,7 @@ import {
   extractErrorFromHtml,
 } from '../utils/responseFormatter'
 import { createApiCircuitBreaker } from '../utils/circuitBreaker'
-import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ChatProviderMetadata, ConversationMetadata } from '../types'
+import type { ChatMessage, Conversation, ChatMessageInput, IChatProvider, ConversationMetadata } from '../types'
 
 /**
  * OpenAI chat provider implementation
@@ -56,7 +56,7 @@ class OpenAIChatProvider implements IChatProvider {
     })
   }
 
-  async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
+  async sendMessage(messages: ChatMessageInput[]): Promise<string> {
     this.startTime = Date.now()
 
     try {
@@ -76,38 +76,13 @@ class OpenAIChatProvider implements IChatProvider {
         })
       }
 
-      // If voice notes are provided, prepend a system message with context
-      let finalMessages = messagesToSend
-      if (providerMetadata?.voiceNoteIds && providerMetadata.voiceNoteIds.length > 0) {
-        // Build a structured context message
-        let contextMessage = `[Context: This conversation is linked to ${providerMetadata.voiceNoteIds.length} voice note(s).`
-
-        if (providerMetadata.context) {
-          const ctx = providerMetadata.context
-          if (ctx.readyTranscripts) {
-            contextMessage += ` ${ctx.readyTranscripts} ready transcript(s) available.`
-          }
-          if (ctx.transcriptSummaries) {
-            contextMessage += ` Transcript summaries: ${ctx.transcriptSummaries}`
-          }
-        }
-
-        contextMessage += ' Please consider this context when responding.]'
-
-        const systemMessage: ChatMessageInput = {
-          role: 'user',
-          content: contextMessage,
-        }
-        finalMessages = [systemMessage, ...messagesToSend]
-      }
-
       // Execute with circuit breaker protection
       const response = await this.circuitBreaker.execute(() =>
         retryWithBackoff(
           () =>
             this.client.chat.completions.create({
               model: API.MODEL,
-              messages: finalMessages as OpenAI.Chat.ChatCompletionMessageParam[],
+              messages: messagesToSend as OpenAI.Chat.ChatCompletionMessageParam[],
               temperature: API.TEMPERATURE,
               max_tokens: API.MAX_TOKENS,
             }),
@@ -222,7 +197,7 @@ class ProxiedChatProvider implements IChatProvider {
     logger.info('ProxiedChatProvider initialized', { proxyUrl: this.proxyUrl })
   }
 
-  async sendMessage(messages: ChatMessageInput[], providerMetadata?: ChatProviderMetadata): Promise<string> {
+  async sendMessage(messages: ChatMessageInput[]): Promise<string> {
     this.startTime = Date.now()
 
     try {
@@ -239,7 +214,6 @@ class ProxiedChatProvider implements IChatProvider {
 
       const requestBody = {
         messages: messagesToSend,
-        metadata: providerMetadata || {},
       }
 
       logger.debug('Sending request to proxy', { url: this.proxyUrl, messageCount: messagesToSend.length })
@@ -526,28 +500,6 @@ class FirestoreChatManager {
     }
   }
 
-  async deleteEmptyConversations(): Promise<number> {
-    try {
-      logger.info('Starting cleanup of empty conversations')
-
-      const allConversations = await this.getAllConversations(1000)
-      let deletedCount = 0
-
-      for (const conversation of allConversations) {
-        if (conversation.messageCount === 0) {
-          await this.deleteConversation(conversation.id)
-          deletedCount++
-        }
-      }
-
-      logger.info('Cleanup completed', { deletedCount })
-      return deletedCount
-    } catch (error) {
-      logger.error('Error during cleanup', error)
-      throw error
-    }
-  }
-
   async updateConversationTitle(conversationId: string, newTitle: string): Promise<void> {
     try {
       logger.info('Updating conversation title', { conversationId, newTitle })
@@ -591,7 +543,7 @@ export class ChatService {
     this.firestoreManager = new FirestoreChatManager()
   }
 
-  async sendMessage(conversationId: string, userMessage: string, metadata?: ChatProviderMetadata): Promise<string> {
+  async sendMessage(conversationId: string, userMessage: string): Promise<string> {
     try {
       logger.info('Sending message', { conversationId, messageLength: userMessage.length })
 
@@ -607,8 +559,8 @@ export class ChatService {
         content: msg.content,
       }))
 
-      // Get response from provider with optional metadata
-      const assistantResponse = await this.provider.sendMessage(apiMessages, metadata)
+      // Get response from provider
+      const assistantResponse = await this.provider.sendMessage(apiMessages)
 
       if (!assistantResponse) {
         throw new Error('Empty response from AI provider')
@@ -639,10 +591,6 @@ export class ChatService {
 
   async deleteConversation(conversationId: string): Promise<void> {
     return this.firestoreManager.deleteConversation(conversationId)
-  }
-
-  async deleteEmptyConversations(): Promise<number> {
-    return this.firestoreManager.deleteEmptyConversations()
   }
 
   async updateConversationTitle(conversationId: string, newTitle: string): Promise<void> {

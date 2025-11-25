@@ -1,6 +1,6 @@
 # CNA Voice Notes AI Workbench
 
-A modern, ChatGPT-like conversational AI interface for analyzing voice notes and underwriting conversations.
+A modern, ChatGPT-like conversational AI interface for underwriting conversations.
 
 ## Quick Start (2 minutes)
 
@@ -59,11 +59,9 @@ src/
 ├── pages/             # Page components (lazy loaded)
 │   ├── LandingPage.tsx
 │   ├── MainChatPage.tsx
-│   ├── ChatHistoryPage.tsx
-│   ├── AudioUploadPage.tsx
-│   └── VoiceNotesPage.tsx
-├── hooks/             # Custom React hooks (6 files)
-├── services/          # Business logic & API (4 files)
+│   └── ChatHistoryPage.tsx
+├── hooks/             # Custom React hooks (5 files)
+├── services/          # Business logic & API (3 files)
 ├── utils/             # Utility functions (8 files)
 ├── types/             # TypeScript definitions
 ├── constants/         # App-wide constants
@@ -76,7 +74,6 @@ src/
 
 - **Conversational AI**: Chat with GPT-4o-mini powered by OpenAI
 - **Chat History**: Browse and manage previous conversations
-- **Audio Upload**: Upload voice notes for processing
 - **Firestore Persistence**: All conversations saved to Firebase
 - **Modern UI**: ChatGPT-like interface with smooth animations
 - **Responsive Design**: Works on desktop and mobile

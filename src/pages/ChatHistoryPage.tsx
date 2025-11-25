@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { chatService } from '../services/chatService'
 import { logger } from '../services/logger'
+import { EmptyState } from '../components/EmptyState'
+import { SkeletonLoader } from '../components/SkeletonLoader'
+import { formatDateAndTime } from '../utils/formatting'
 import type { Conversation } from '../types'
 import { FiArrowLeft, FiTrash2, FiMessageSquare, FiClock, FiSearch, FiBook } from 'react-icons/fi'
 
@@ -47,114 +50,95 @@ const ChatHistoryPage: React.FC = () => {
     }
   }
 
-  const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
 
-    if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday'
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    }
-  }
 
   const filteredConversations = conversations.filter(conv =>
     conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-b from-white to-slate-50">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-white/80 to-slate-50/80 dark:from-slate-900/80 dark:to-slate-950/80 backdrop-blur-sm">
       {/* Header with improved visual hierarchy */}
-      <div className="border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white to-slate-50 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="border-b border-slate-200/50 dark:border-slate-700/50 px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-white/80 to-slate-50/80 dark:from-slate-900/80 dark:to-slate-950/80 backdrop-blur-sm shadow-sm hover:shadow-md dark:shadow-md dark:hover:shadow-lg transition-shadow duration-200">
         <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
           <button
             onClick={() => navigate('/chat')}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-all duration-200 text-slate-700 hover:text-slate-900 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
+            className="btn-icon"
             aria-label="Go back to chat"
           >
             <FiArrowLeft size={20} />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2 min-w-0">
-              <FiBook size={24} className="text-blue-600 flex-shrink-0" aria-hidden="true" />
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2 min-w-0">
+              <FiBook size={24} className="text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />
               <span className="truncate">Chat History</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">{filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
         {/* Enhanced Search Bar */}
         <div className="relative">
-          <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 flex-shrink-0" size={16} aria-hidden="true" />
+          <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 flex-shrink-0" size={16} aria-hidden="true" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-500 transition-all duration-200 hover:border-slate-400 shadow-sm hover:shadow-md"
+            className="w-full pl-10 sm:pl-11 pr-3 sm:pr-4 py-2.5 bg-white/80 dark:bg-slate-800/80 border border-slate-300/50 dark:border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-50 placeholder-slate-500 dark:placeholder-slate-400 transition-all duration-200 hover:border-slate-400/70 dark:hover:border-slate-500/70 shadow-sm hover:shadow-md dark:shadow-md dark:hover:shadow-lg backdrop-blur-sm"
             aria-label="Search conversations"
           />
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gradient-to-b from-white to-slate-50">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gradient-to-b from-white/80 to-slate-50/80 dark:from-slate-900/80 dark:to-slate-950/80 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
           {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 animate-pulse"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0 space-y-3">
-                      <div className="h-5 bg-slate-200 rounded-lg w-3/4" />
-                      <div className="flex items-center gap-3">
-                        <div className="h-4 bg-slate-200 rounded w-24" />
-                        <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                        <div className="h-4 bg-slate-200 rounded w-32" />
-                      </div>
-                    </div>
-                    <div className="h-8 w-8 bg-slate-200 rounded flex-shrink-0" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <SkeletonLoader variant="card" count={3} />
           ) : filteredConversations.length === 0 ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center animate-fade-in">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-4 shadow-md">
-                  <FiMessageSquare size={32} className="text-blue-600" />
+            <EmptyState
+              icon={
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/40 dark:to-blue-800/40 rounded-full flex items-center justify-center shadow-md dark:shadow-lg">
+                  <FiMessageSquare size={32} className="text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="text-slate-600 text-lg font-semibold">{searchQuery ? 'No conversations found' : 'No conversations yet'}</p>
-                <p className="text-slate-500 text-sm mt-2">{searchQuery ? 'Try a different search' : 'Start a new chat to begin'}</p>
-              </div>
-            </div>
+              }
+              title={searchQuery ? 'No conversations found' : 'No conversations yet'}
+              description={searchQuery ? 'Try a different search' : 'Start a new chat to begin'}
+              action={!searchQuery ? {
+                label: 'Start New Chat',
+                onClick: () => navigate('/chat'),
+              } : undefined}
+              variant="compact"
+            />
           ) : (
             <div className="space-y-3">
               {filteredConversations.map((conv, index) => (
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConversation(conv.id)}
-                  className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/15 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-1 focus-visible-ring"
+                  className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-4 sm:p-5 border border-slate-200/50 dark:border-slate-700/50 hover:border-blue-500/70 dark:hover:border-blue-400/70 hover:shadow-xl hover:shadow-blue-500/15 dark:hover:shadow-lg dark:hover:shadow-blue-500/20 transition-all duration-200 cursor-pointer group animate-fade-in hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900 backdrop-blur-sm"
                   style={{ animationDelay: `${index * 50}ms` }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleSelectConversation(conv.id)
+                    }
+                  }}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors text-sm sm:text-base flex items-center gap-2">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0" aria-hidden="true" />
+                      <h3 className="font-bold text-slate-900 dark:text-slate-50 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm sm:text-base flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full flex-shrink-0" aria-hidden="true" />
                         <span className="truncate">{conv.title}</span>
                       </h3>
-                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 group-hover:text-slate-700 transition-colors flex-wrap">
+                      <div className="flex items-center gap-3 mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors flex-wrap">
                         <div className="flex items-center gap-1">
                           <FiClock size={14} className="flex-shrink-0" aria-hidden="true" />
-                          <span>{formatDate(conv.createdAt)}</span>
+                          <span>{formatDateAndTime(conv.createdAt)}</span>
                         </div>
-                        <div className="w-1 h-1 bg-slate-300 rounded-full" aria-hidden="true" />
+                        <div className="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full" aria-hidden="true" />
                         <div className="flex items-center gap-1">
                           <FiMessageSquare size={14} className="flex-shrink-0" aria-hidden="true" />
                           <span>{conv.messageCount} message{conv.messageCount !== 1 ? 's' : ''}</span>
@@ -165,27 +149,27 @@ const ChatHistoryPage: React.FC = () => {
                       {(conv.metadata?.broker || conv.metadata?.lob || conv.metadata?.businessType || conv.metadata?.riskCategory || conv.metadata?.underwritingStatus) && (
                         <div className="flex items-center gap-2 mt-3 flex-wrap">
                           {conv.metadata?.broker && (
-                            <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
+                            <span className="inline-block px-2.5 py-1 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs font-medium border border-blue-200/50 dark:border-blue-800/50">
                               {conv.metadata.broker}
                             </span>
                           )}
                           {conv.metadata?.lob && (
-                            <span className="inline-block px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
+                            <span className="inline-block px-2.5 py-1 bg-gradient-to-r from-green-50 to-green-100/50 dark:from-green-950/40 dark:to-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-medium border border-green-200/50 dark:border-green-800/50">
                               {conv.metadata.lob}
                             </span>
                           )}
                           {conv.metadata?.businessType && (
-                            <span className="inline-block px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                            <span className="inline-block px-2.5 py-1 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-950/40 dark:to-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-medium border border-purple-200/50 dark:border-purple-800/50">
                               {conv.metadata.businessType}
                             </span>
                           )}
                           {conv.metadata?.riskCategory && (
-                            <span className="inline-block px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs font-medium">
+                            <span className="inline-block px-2.5 py-1 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/30 text-orange-700 dark:text-orange-300 rounded text-xs font-medium border border-orange-200/50 dark:border-orange-800/50">
                               {conv.metadata.riskCategory}
                             </span>
                           )}
                           {conv.metadata?.underwritingStatus && (
-                            <span className="inline-block px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">
+                            <span className="inline-block px-2.5 py-1 bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/30 text-red-700 dark:text-red-300 rounded text-xs font-medium border border-red-200/50 dark:border-red-800/50">
                               {conv.metadata.underwritingStatus}
                             </span>
                           )}
@@ -194,11 +178,11 @@ const ChatHistoryPage: React.FC = () => {
                     </div>
                     <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}
-                      className="p-1.5 hover:bg-red-50 rounded transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
+                      className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 flex-shrink-0 focus-visible-ring"
                       aria-label="Delete conversation"
                       type="button"
                     >
-                      <FiTrash2 size={16} className="text-red-500 transition-transform" />
+                      <FiTrash2 size={16} className="text-red-500 dark:text-red-400 transition-transform" />
                     </button>
                   </div>
                 </div>

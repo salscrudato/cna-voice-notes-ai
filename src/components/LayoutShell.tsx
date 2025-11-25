@@ -1,26 +1,26 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import type { ReactNode } from 'react'
+import { useToast } from '../hooks/useToast'
+import { useTheme } from '../hooks/useTheme'
+import { ToastContainer } from './ToastContainer'
 
 interface LayoutShellProps {
   children: ReactNode
 }
 
 /**
- * Global layout shell that applies global styles
+ * Global layout shell that applies global styles and manages theme
  * Should wrap the entire application
  */
 const LayoutShellComponent: React.FC<LayoutShellProps> = ({ children }) => {
-  // Ensure light theme is applied on mount
-  useEffect(() => {
-    const htmlElement = document.documentElement
-    htmlElement.classList.remove('dark')
-  }, [])
+  const { isDarkMode } = useTheme()
+  const { toasts, removeToast } = useToast()
 
   return (
     <div>
       <style>{`
         :root {
-          color-scheme: light;
+          color-scheme: ${isDarkMode ? 'dark' : 'light'};
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -32,6 +32,7 @@ const LayoutShellComponent: React.FC<LayoutShellProps> = ({ children }) => {
         }
       `}</style>
       {children}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   )
 }

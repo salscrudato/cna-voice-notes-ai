@@ -3,6 +3,10 @@
  * Centralized type definitions for better maintainability and AI comprehension
  */
 
+// ============================================================================
+// CHAT & MESSAGING TYPES
+// ============================================================================
+
 /** Message role in a conversation */
 export type MessageRole = 'user' | 'assistant'
 
@@ -13,6 +17,13 @@ export interface ChatMessage {
   role: MessageRole
   content: string
   createdAt: Date
+}
+
+/** Props for a message item component */
+export interface MessageItemProps {
+  message: ChatMessage
+  isCopied: boolean
+  onCopy: (messageId: string, content: string) => void
 }
 
 /** Metadata for filtering conversations */
@@ -65,16 +76,13 @@ export interface ChatMessageInput {
   content: string
 }
 
-/** Extended chat provider interface with optional metadata support */
-export interface IChatProvider {
-  sendMessage(messages: ChatMessageInput[], metadata?: ChatProviderMetadata): Promise<string>
-}
+// ============================================================================
+// CHAT PROVIDER TYPES
+// ============================================================================
 
-/** Optional metadata to send with chat provider requests */
-export interface ChatProviderMetadata {
-  conversationId?: string
-  voiceNoteIds?: string[]
-  context?: Record<string, unknown>
+/** Chat provider interface */
+export interface IChatProvider {
+  sendMessage(messages: ChatMessageInput[]): Promise<string>
 }
 
 
@@ -105,14 +113,6 @@ export interface ErrorDetails {
   statusCode?: number
   retryable: boolean
   originalError?: unknown
-}
-
-/** Standard response envelope for all API responses */
-export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: ErrorDetails
-  metadata: ResponseMetadata
 }
 
 /** Formatted chat response with content and metadata */
@@ -148,31 +148,10 @@ export interface ResponseFormattingOptions {
   timeout?: number
 }
 
-/** Streaming response chunk */
-export interface StreamingChunk {
-  id: string
-  timestamp: Date
-  content: string
-  isComplete: boolean
-  error?: ErrorDetails
-}
 
-/** Streaming response handler options */
-export interface StreamingOptions {
-  onChunk?: (chunk: StreamingChunk) => void
-  onComplete?: (fullContent: string) => void
-  onError?: (error: ErrorDetails) => void
-  timeout?: number
-  maxChunks?: number
-}
-
-/** Response cache entry */
-export interface CacheEntry<T> {
-  data: T
-  timestamp: Date
-  ttl: number // milliseconds
-  hits: number
-}
+// ============================================================================
+// CIRCUIT BREAKER TYPES
+// ============================================================================
 
 /** Circuit breaker state */
 export type CircuitBreakerState = 'closed' | 'open' | 'half-open'
@@ -194,30 +173,4 @@ export interface CircuitBreakerStatus {
   nextAttemptTime?: Date
 }
 
-/** Comprehensive response envelope with additional metadata */
-export interface EnhancedApiResponse<T = unknown> extends ApiResponse<T> {
-  cached?: boolean
-  streaming?: boolean
-  partial?: boolean
-  retryInfo?: {
-    attempt: number
-    maxAttempts: number
-    nextRetryTime?: Date
-  }
-}
 
-/** Voice note status */
-export type VoiceNoteStatus = 'uploaded' | 'processing' | 'ready' | 'error'
-
-/** A voice note record */
-export interface VoiceNote {
-  id: string
-  fileName: string
-  storagePath: string
-  status: VoiceNoteStatus
-  createdAt: Date
-  updatedAt: Date
-  transcriptId?: string
-  transcriptSummary?: string
-  conversationId?: string
-}
