@@ -6,6 +6,7 @@ import { retryWithBackoff } from '../utils/retry'
 import { getAPIConfig, getApiKeyErrorMessage, getChatProviderConfig } from './config'
 import { toDate } from '../utils/timestampConverter'
 import { API, UI } from '../constants'
+import { getSystemPrompt } from '../constants/systemPrompts'
 import {
   formatChatResponse,
   validateResponse,
@@ -76,13 +77,23 @@ class OpenAIChatProvider implements IChatProvider {
         })
       }
 
+      // Prepare messages with system prompt
+      const systemPrompt = getSystemPrompt('default')
+      const messagesWithSystem: OpenAI.Chat.ChatCompletionMessageParam[] = [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        ...messagesToSend as OpenAI.Chat.ChatCompletionMessageParam[],
+      ]
+
       // Execute with circuit breaker protection
       const response = await this.circuitBreaker.execute(() =>
         retryWithBackoff(
           () =>
             this.client.chat.completions.create({
               model: API.MODEL,
-              messages: messagesToSend as OpenAI.Chat.ChatCompletionMessageParam[],
+              messages: messagesWithSystem,
               temperature: API.TEMPERATURE,
               max_tokens: API.MAX_TOKENS,
             }),
@@ -143,6 +154,80 @@ class OpenAIChatProvider implements IChatProvider {
       return formattedResponse.content
     } catch (error) {
       logger.error('Error in OpenAIChatProvider.sendMessage', error)
+      return this.handleError(error)
+    }
+  }
+
+  async sendMessageStream(messages: ChatMessageInput[], onChunk: (chunk: string) => void): Promise<string> {
+    this.startTime = Date.now()
+    let fullContent = ''
+
+    try {
+      if (!this.client.apiKey) {
+        throw new Error(getApiKeyErrorMessage())
+      }
+
+      const maxMessagesToSend = UI.MAX_MESSAGES_TO_SEND_TO_API
+      const messagesToSend = messages.slice(-maxMessagesToSend)
+
+      const systemPrompt = getSystemPrompt('default')
+      const messagesWithSystem: OpenAI.Chat.ChatCompletionMessageParam[] = [
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        ...messagesToSend as OpenAI.Chat.ChatCompletionMessageParam[],
+      ]
+
+      // Execute with circuit breaker protection
+      const stream = await this.circuitBreaker.execute(() =>
+        retryWithBackoff(
+          () =>
+            this.client.chat.completions.create({
+              model: API.MODEL,
+              messages: messagesWithSystem,
+              temperature: API.TEMPERATURE,
+              max_tokens: API.MAX_TOKENS,
+              stream: true,
+            }),
+          {
+            maxAttempts: this.apiConfig.maxRetries,
+            delayMs: this.apiConfig.retryDelay,
+            backoffMultiplier: this.apiConfig.backoffMultiplier,
+          }
+        )
+      )
+
+      // Process stream chunks
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || ''
+        if (content) {
+          fullContent += content
+          onChunk(content)
+        }
+      }
+
+      if (!fullContent || fullContent.trim().length === 0) {
+        throw new Error('No response content from OpenAI API')
+      }
+
+      if (isHtmlResponse(fullContent)) {
+        const errorMessage = extractErrorFromHtml(fullContent)
+        throw new Error(`Server returned error: ${errorMessage}`)
+      }
+
+      const validation = validateResponse(fullContent)
+      if (!validation.isValid) {
+        logger.error('Response validation failed', { errors: validation.errors })
+        throw new Error(`Invalid response: ${validation.errors.join(', ')}`)
+      }
+
+      const duration = Date.now() - this.startTime
+      logger.logResponseTiming('openai', duration, 'OpenAI API streaming call')
+
+      return fullContent
+    } catch (error) {
+      logger.error('Error in OpenAIChatProvider.sendMessageStream', error)
       return this.handleError(error)
     }
   }
@@ -321,6 +406,78 @@ class ProxiedChatProvider implements IChatProvider {
       return formattedResponse.content
     } catch (error) {
       logger.error('Error in ProxiedChatProvider.sendMessage', error)
+      return this.handleError(error)
+    }
+  }
+
+  async sendMessageStream(messages: ChatMessageInput[], onChunk: (chunk: string) => void): Promise<string> {
+    this.startTime = Date.now()
+    let fullContent = ''
+
+    try {
+      const maxMessagesToSend = UI.MAX_MESSAGES_TO_SEND_TO_API
+      const messagesToSend = messages.slice(-maxMessagesToSend)
+
+      const requestBody = {
+        messages: messagesToSend,
+        stream: true,
+      }
+
+      logger.debug('Sending streaming request to proxy', { url: this.proxyUrl, messageCount: messagesToSend.length })
+
+      const response = await this.circuitBreaker.execute(() =>
+        retryWithBackoff(
+          () =>
+            fetch(this.proxyUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            }),
+          {
+            maxAttempts: this.apiConfig.maxRetries,
+            delayMs: this.apiConfig.retryDelay,
+            backoffMultiplier: this.apiConfig.backoffMultiplier,
+          }
+        )
+      )
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Proxy returned ${response.status}: ${errorText.substring(0, 200)}`)
+      }
+
+      if (!response.body) {
+        throw new Error('No response body from proxy')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          fullContent += chunk
+          onChunk(chunk)
+        }
+      } finally {
+        reader.releaseLock()
+      }
+
+      if (!fullContent || fullContent.trim().length === 0) {
+        throw new Error('Proxy returned empty content')
+      }
+
+      const duration = Date.now() - this.startTime
+      logger.logResponseTiming('proxied', duration, 'Proxy API streaming call')
+
+      return fullContent
+    } catch (error) {
+      logger.error('Error in ProxiedChatProvider.sendMessageStream', error)
       return this.handleError(error)
     }
   }
@@ -573,6 +730,45 @@ export class ChatService {
       return assistantResponse
     } catch (error) {
       logger.error('Error in sendMessage', error)
+      throw error
+    }
+  }
+
+  async sendMessageStream(conversationId: string, userMessage: string, onChunk: (chunk: string) => void): Promise<string> {
+    try {
+      logger.info('Sending streaming message', { conversationId, messageLength: userMessage.length })
+
+      // Save user message
+      await this.firestoreManager.saveMessage(conversationId, 'user', userMessage)
+
+      // Get conversation history
+      const messages = await this.firestoreManager.getConversationMessages(conversationId)
+
+      // Prepare messages for API
+      const apiMessages: ChatMessageInput[] = messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }))
+
+      // Get streaming response from provider
+      if (!this.provider.sendMessageStream) {
+        logger.warn('Provider does not support streaming, falling back to regular sendMessage')
+        return this.sendMessage(conversationId, userMessage)
+      }
+
+      const assistantResponse = await this.provider.sendMessageStream(apiMessages, onChunk)
+
+      if (!assistantResponse) {
+        throw new Error('Empty response from AI provider')
+      }
+
+      // Save assistant response
+      await this.firestoreManager.saveMessage(conversationId, 'assistant', assistantResponse)
+
+      logger.info('Streaming message processed successfully', { conversationId })
+      return assistantResponse
+    } catch (error) {
+      logger.error('Error in sendMessageStream', error)
       throw error
     }
   }

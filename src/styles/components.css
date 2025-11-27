@@ -1,0 +1,124 @@
+/* Component-specific styles */
+@layer components {
+  /* Button System - Enhanced with better visual feedback */
+  .btn-primary {
+    @apply px-4 py-2.5 rounded-lg font-semibold text-white transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 active:translate-y-0 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-md disabled:hover:-translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2.5 rounded-lg font-semibold text-slate-900 dark:text-slate-50 bg-slate-200 dark:bg-slate-700 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 active:translate-y-0 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-sm disabled:hover:-translate-y-0;
+  }
+
+  .btn-tertiary {
+    @apply px-4 py-2.5 rounded-lg font-semibold text-slate-700 dark:text-slate-300 bg-transparent border border-slate-300 dark:border-slate-600 transition-all duration-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-sm hover:-translate-y-0.5 active:scale-95 active:translate-y-0 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-icon {
+    @apply p-2 rounded-lg transition-all duration-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-sm hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950;
+  }
+
+  /* Card System - Enhanced with better depth and interactivity */
+  .card {
+    @apply rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all duration-300 p-4;
+  }
+
+  .card-elevated {
+    @apply rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 p-4;
+  }
+
+  .card-interactive {
+    @apply rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-lg hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 p-4 cursor-pointer;
+  }
+
+  /* Panel System - Enhanced with better visual hierarchy */
+  .panel {
+    @apply rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4;
+  }
+
+  .panel-elevated {
+    @apply rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-4;
+  }
+
+  .panel-subtle {
+    @apply rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 p-4;
+  }
+
+  /* Message Bubble Styles */
+  .message-bubble {
+    @apply rounded-2xl px-5 py-4 max-w-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5;
+  }
+
+  .message-bubble-user {
+    @apply text-white font-medium;
+  }
+
+  .message-bubble-assistant {
+    @apply bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600;
+  }
+
+  .message-timestamp {
+    @apply text-xs font-normal;
+  }
+
+  .message-timestamp-user {
+    @apply text-slate-600 dark:text-slate-400 text-right;
+  }
+
+  .message-timestamp-assistant {
+    @apply text-slate-600 dark:text-slate-400 text-left;
+  }
+
+  /* Input Styles */
+  .input-base {
+    @apply px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-50 placeholder-slate-500 dark:placeholder-slate-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:border-transparent;
+  }
+
+  /* Link Styles */
+  .link-base {
+    @apply transition-colors duration-300 hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 rounded;
+  }
+
+  /* Badge System - Enhanced with better visual hierarchy */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300;
+  }
+
+  .badge-primary {
+    @apply bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50;
+  }
+
+  .badge-success {
+    @apply bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/50;
+  }
+
+  .badge-warning {
+    @apply bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50;
+  }
+
+  .badge-error {
+    @apply bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/50;
+  }
+
+  /* Divider Styles */
+  .divider {
+    @apply border-t border-slate-200 dark:border-slate-700/50;
+  }
+
+  .divider-subtle {
+    @apply border-t border-slate-100 dark:border-slate-800/50;
+  }
+
+  /* Skeleton Loading */
+  .skeleton {
+    @apply bg-slate-200 dark:bg-slate-700 rounded animate-pulse;
+  }
+
+  .skeleton-text {
+    @apply h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse;
+  }
+
+  .skeleton-avatar {
+    @apply w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse;
+  }
+}
+

@@ -32,5 +32,9 @@ export default defineConfig({
     // Increase chunk size warning limit since we have large dependencies
     // Firebase and OpenAI are particularly large
     chunkSizeWarningLimit: 600,
+    // Image optimization settings
+    assetsInlineLimit: 4096, // Inline images smaller than 4KB
   },
+  // Optimize image assets
+  assetsInclude: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.webp', '**/*.gif'],
 })

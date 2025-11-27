@@ -1,6 +1,7 @@
-import React, { memo } from 'react'
-import { IoChatbubblesOutline } from 'react-icons/io5'
-import { HiOutlineDocumentText, HiOutlineMicrophone } from 'react-icons/hi2'
+import React from 'react'
+import { IoChatbubblesOutline, HiOutlineDocumentText, HiOutlineMicrophone } from '../../utils/icons'
+import { useTheme } from '../../hooks/useTheme'
+import { getAccentColor } from '../../utils/accentColors'
 
 interface Feature {
   icon: React.ComponentType<{ className?: string }>
@@ -9,39 +10,51 @@ interface Feature {
 }
 
 const LandingFeaturesComponent: React.FC = () => {
+  const { accentColor } = useTheme()
   const features: Feature[] = [
     {
       icon: IoChatbubblesOutline,
-      title: 'Natural Conversations',
-      description: 'Chat naturally about your calls. Ask follow-ups. Get clarity instantly.',
+      title: 'Context-aware AI assistant',
+      description:
+        'Ask questions about your calls and get answers backed by direct quotes from the conversation.',
     },
     {
       icon: HiOutlineDocumentText,
-      title: 'Organized History',
-      description: 'All conversations saved and searchable. Linked to voice notes.',
+      title: 'Searchable conversation library',
+      description:
+        'Find any call instantly by broker, account, topic, or date with full transcripts and audio.',
     },
     {
       icon: HiOutlineMicrophone,
-      title: 'Audio Integration',
-      description: 'Upload calls. AI transcribes. Chat about content directly.',
+      title: 'Seamless call capture',
+      description:
+        'Record from Teams or upload audio files—automatically transcribed and ready to analyze.',
     },
   ]
 
   return (
-    <section id="features" className="py-20 sm:py-24 lg:py-28 px-4 sm:px-6 bg-gradient-to-b from-white via-slate-50/60 to-white dark:from-slate-950 dark:via-slate-900/60 dark:to-slate-950 relative overflow-hidden">
-      {/* Minimal background - very subtle with enhanced depth */}
+    <section id="features" className="py-20 sm:py-24 lg:py-28 px-4 sm:px-6 bg-gradient-to-b from-slate-50/50 via-white/95 to-white dark:from-slate-900/50 dark:via-slate-950/95 dark:to-slate-950 relative overflow-hidden">
+      {/* Minimal background - very subtle - using dynamic accent color */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 dark:bg-blue-950/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-50/40 dark:bg-cyan-950/15 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl"
+          style={{
+            background: `${getAccentColor(accentColor, '50')}4d`
+          }}
+        />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"
+          style={{
+            background: `${getAccentColor(accentColor, '50')}33`
+          }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 sm:mb-20">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 dark:text-slate-50 mb-4">
-            Core Features
+            Core features
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Everything built for underwriting workflows.
+            Everything built for real underwriting workflows.
           </p>
         </div>
 
@@ -51,18 +64,49 @@ const LandingFeaturesComponent: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl p-8 border border-slate-200/60 dark:border-slate-700/60 shadow-lg dark:shadow-lg dark:shadow-slate-900/50 hover:shadow-2xl dark:hover:shadow-2xl hover:shadow-blue-500/30 dark:hover:shadow-blue-500/25 transition-all duration-300 hover:-translate-y-3 hover:border-blue-300/80 dark:hover:border-blue-600/80 animate-fade-in-up hover:scale-[1.02] dark:hover:shadow-slate-900/60 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-950"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 hover:scale-[1.03] animate-fade-in-up focus-within:ring-2 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-950 overflow-hidden"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                }}
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 via-blue-50 to-cyan-100 dark:from-blue-900/60 dark:via-blue-900/50 dark:to-cyan-900/50 rounded-xl flex items-center justify-center mb-5 group-hover:from-blue-200 group-hover:via-blue-100 group-hover:to-cyan-200 dark:group-hover:from-blue-900/80 dark:group-hover:via-blue-900/70 dark:group-hover:to-cyan-900/70 transition-all duration-300 flex-shrink-0 group-hover:shadow-lg dark:group-hover:shadow-lg group-hover:shadow-blue-500/50 dark:group-hover:shadow-blue-500/35 group-hover:-translate-y-1.5 border border-blue-200/50 dark:border-blue-700/50 group-hover:border-blue-300/80 dark:group-hover:border-blue-600/80">
-                  <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-125 transition-all duration-300" aria-hidden="true" />
+                {/* Subtle gradient overlay on hover */}
+                <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: `linear-gradient(135deg, ${getAccentColor(accentColor, '50')}1a, transparent)`
+                  }}
+                />
+
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-125 group-hover:-translate-y-2 transition-all duration-300 flex-shrink-0 shadow-md group-hover:shadow-lg border"
+                    style={{
+                      background: `linear-gradient(135deg, ${getAccentColor(accentColor, '100')}, ${getAccentColor(accentColor, '50')})`,
+                      borderColor: `${getAccentColor(accentColor, '200')}80`
+                    }}
+                  >
+                    <div style={{ color: getAccentColor(accentColor, '600') }}>
+                      <IconComponent
+                        className="w-7 h-7 group-hover:scale-125 transition-all duration-300"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 mb-3 transition-colors duration-300"
+                    style={{
+                      color: 'inherit'
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLHeadingElement).style.color = getAccentColor(accentColor, '600')
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLHeadingElement).style.color = 'inherit'
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-base leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-50 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 group-hover:scale-105">
-                  {feature.title}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors duration-300">
-                  {feature.description}
-                </p>
               </div>
             )
           })}
@@ -72,5 +116,5 @@ const LandingFeaturesComponent: React.FC = () => {
   )
 }
 
-export const LandingFeatures = memo(LandingFeaturesComponent)
+export const LandingFeatures = LandingFeaturesComponent
 

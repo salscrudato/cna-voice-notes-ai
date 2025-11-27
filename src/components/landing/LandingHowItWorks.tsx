@@ -1,7 +1,9 @@
-import React, { memo } from 'react'
-import { HiOutlineSparkles, HiOutlineQuestionMarkCircle, HiOutlineLightBulb } from 'react-icons/hi2'
+import React from 'react'
+import { HiOutlineClock, HiOutlineCheckCircle, HiOutlineSparkles } from '../../utils/icons'
+import { useTheme } from '../../hooks/useTheme'
+import { getAccentColor } from '../../utils/accentColors'
 
-interface Step {
+interface Feature {
   number: number
   title: string
   description: string
@@ -9,71 +11,125 @@ interface Step {
 }
 
 const LandingHowItWorksComponent: React.FC = () => {
-  const steps: Step[] = [
+  const { accentColor } = useTheme()
+  const features: Feature[] = [
     {
       number: 1,
-      title: 'Start a Chat',
-      description: 'Begin a conversation with our AI assistant.',
-      icon: HiOutlineSparkles,
+      title: 'Work more efficiently',
+      description:
+        'Reduce time spent on call review and note-taking. Focus your expertise on judgment and decision-making instead of manual documentation.',
+      icon: HiOutlineClock,
     },
     {
       number: 2,
-      title: 'Ask Questions',
-      description: 'Get instant answers and insights.',
-      icon: HiOutlineQuestionMarkCircle,
+      title: 'Gain deeper insights',
+      description:
+        'Access a searchable repository of all conversations. Spot patterns, understand risk factors, and make better-informed underwriting decisions.',
+      icon: HiOutlineCheckCircle,
     },
     {
       number: 3,
-      title: 'Get Results',
-      description: 'Receive actionable underwriting insights.',
-      icon: HiOutlineLightBulb,
+      title: 'Write better business',
+      description:
+	        'Leverage collective knowledge from your team\'s conversations. Improve consistency, reduce risk, and strengthen relationships with brokers.',
+      icon: HiOutlineSparkles,
     },
   ]
 
   return (
-    <section id="how-it-works" className="py-20 sm:py-24 lg:py-28 px-4 sm:px-6 bg-gradient-to-b from-slate-50 via-white/60 to-slate-50 dark:from-slate-900 dark:via-slate-950/60 dark:to-slate-900 relative overflow-hidden">
-      {/* Minimal background - very subtle with enhanced depth */}
+    <section id="key-benefits" className="py-20 sm:py-24 lg:py-28 px-4 sm:px-6 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 relative overflow-hidden">
+      {/* Minimal background - very subtle - using dynamic accent color */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-50/50 dark:bg-blue-950/20 rounded-full blur-3xl" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-50/40 dark:bg-cyan-950/15 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"
+          style={{
+            background: `${getAccentColor(accentColor, '50')}4d`
+          }}
+        />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl"
+          style={{
+            background: `${getAccentColor(accentColor, '50')}33`
+          }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 sm:mb-20">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-900 dark:text-slate-50 mb-4">
-            How It Works
+            Key benefits
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Three simple steps to actionable insights.
+            Build a shared knowledge repository. Underwrite faster, smarter, and with confidence.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
-          {steps.map((step, index) => {
-            const IconComponent = step.icon
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon
             return (
-              <div key={index} className="relative flex flex-col items-center text-center group animate-fade-in-up hover:scale-[1.02] transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-950 rounded-lg p-4 hover:-translate-y-2" style={{ animationDelay: `${index * 100}ms` }}>
+              <div key={index} className="relative flex flex-col items-center text-center group animate-fade-in-up hover:scale-[1.05] transition-all duration-300 focus-within:ring-2 focus-within:ring-offset-2 dark:focus-within:ring-offset-slate-950 rounded-xl p-6 hover:-translate-y-3 bg-white dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-2xl dark:hover:shadow-2xl overflow-hidden"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                }}
+              >
+                {/* Subtle gradient overlay on hover */}
+                <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: `linear-gradient(135deg, ${getAccentColor(accentColor, '50')}1a, transparent)`
+                  }}
+                />
                 {/* Connecting line (hidden on mobile) */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-1/2 w-full h-px bg-gradient-to-r from-slate-300 via-blue-400 to-slate-300 dark:from-slate-700 dark:via-blue-600 dark:to-slate-700 transform -translate-y-1/2 group-hover:via-blue-500 dark:group-hover:via-blue-500 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/30" />
+                {index < features.length - 1 && (
+                  <div className="hidden md:block absolute top-16 left-1/2 w-full h-px transform -translate-y-1/2 transition-all duration-300"
+                    style={{
+                      background: getAccentColor(accentColor, '400')
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.background = getAccentColor(accentColor, '600')
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.background = getAccentColor(accentColor, '400')
+                    }}
+                  />
                 )}
 
-                {/* Number badge - enhanced */}
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700 dark:from-blue-600 dark:via-blue-600 dark:to-blue-800 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg dark:shadow-lg dark:shadow-blue-500/30 group-hover:shadow-2xl group-hover:shadow-blue-500/70 dark:group-hover:shadow-blue-500/40 group-hover:scale-125 transition-all duration-300 mb-6 flex-shrink-0 relative z-10 border border-blue-500/40 dark:border-blue-400/40 group-hover:-translate-y-2">
-                  {step.number}
+                {/* Number badge - simplified */}
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg dark:shadow-lg group-hover:shadow-2xl dark:group-hover:shadow-2xl transition-all duration-300 mb-6 flex-shrink-0 relative z-20 group-hover:scale-125 group-hover:-translate-y-3 border"
+                  style={{
+                    background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+                    borderColor: `${getAccentColor(accentColor, '500')}4d`
+                  }}
+                >
+                  {feature.number}
                 </div>
 
                 {/* Icon container */}
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100/90 via-blue-50/80 to-cyan-100/90 dark:from-blue-900/60 dark:via-blue-900/50 dark:to-cyan-900/50 rounded-xl flex items-center justify-center mb-4 flex-shrink-0 group-hover:from-blue-200 group-hover:via-blue-100 group-hover:to-cyan-200 dark:group-hover:from-blue-900/80 dark:group-hover:via-blue-900/70 dark:group-hover:to-cyan-900/70 transition-all duration-300 group-hover:shadow-lg dark:group-hover:shadow-lg group-hover:shadow-blue-500/50 dark:group-hover:shadow-blue-500/35 backdrop-blur-md border border-blue-200/60 dark:border-blue-700/60 group-hover:-translate-y-1.5 group-hover:border-blue-300/80 dark:group-hover:border-blue-600/80">
-                  <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:scale-125 transition-all duration-300" aria-hidden="true" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 flex-shrink-0 group-hover:scale-125 group-hover:-translate-y-2 transition-all duration-300 shadow-md group-hover:shadow-lg border relative z-20"
+                  style={{
+                    background: `linear-gradient(135deg, ${getAccentColor(accentColor, '100')}, ${getAccentColor(accentColor, '50')})`,
+                    borderColor: `${getAccentColor(accentColor, '200')}80`
+                  }}
+                >
+                  <div style={{ color: getAccentColor(accentColor, '600') }}>
+                    <IconComponent
+                      className="w-6 h-6 group-hover:scale-125 transition-all duration-300"
+                      aria-hidden="true"
+                    />
+                  </div>
                 </div>
 
                 {/* Content */}
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-50 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 group-hover:scale-105">
-                  {step.title}
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 mb-3 transition-colors duration-300 relative z-20"
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLHeadingElement).style.color = getAccentColor(accentColor, '600')
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLHeadingElement).style.color = 'inherit'
+                  }}
+                >
+                  {feature.title}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors duration-300">
-                  {step.description}
+                <p className="text-slate-600 dark:text-slate-400 text-base leading-relaxed">
+                  {feature.description}
                 </p>
               </div>
             )
@@ -84,5 +140,5 @@ const LandingHowItWorksComponent: React.FC = () => {
   )
 }
 
-export const LandingHowItWorks = memo(LandingHowItWorksComponent)
+export const LandingHowItWorks = LandingHowItWorksComponent
 

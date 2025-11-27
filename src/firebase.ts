@@ -59,8 +59,9 @@ try {
   if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
     analytics = getAnalytics(app)
   }
-} catch (error) {
-  console.warn('Analytics initialization failed:', error)
+} catch {
+  // Analytics initialization is optional, silently fail
+  // Error is not logged as it's expected in some environments
 }
 
 const db = getFirestore(app)

@@ -55,11 +55,11 @@ const SkeletonLoaderComponent: React.FC<SkeletonLoaderProps> = ({
   const styles = getVariantStyles()
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}
-          className={`${styles.height} ${styles.width} ${styles.rounded} ${styles.margin} bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 animate-shimmer shadow-sm hover:shadow-lg dark:hover:shadow-lg dark:hover:shadow-slate-700/60 border border-slate-300/40 dark:border-slate-600/40 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] dark:hover:shadow-slate-700/50 group`}
+          className={`${styles.height} ${styles.width} ${styles.rounded} ${styles.margin} bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 animate-shimmer shadow-md dark:shadow-md border border-slate-300/40 dark:border-slate-600/40`}
           aria-hidden="true"
           style={{ animationDelay: `${index * 50}ms` }}
         />

@@ -83,6 +83,7 @@ export interface ChatMessageInput {
 /** Chat provider interface */
 export interface IChatProvider {
   sendMessage(messages: ChatMessageInput[]): Promise<string>
+  sendMessageStream?(messages: ChatMessageInput[], onChunk: (chunk: string) => void): Promise<string>
 }
 
 
@@ -127,6 +128,16 @@ export interface FormattedChatResponse {
     temperature: number
     maxTokens: number
     finishReason?: string
+    qualityMetrics?: {
+      readabilityScore: number
+      scannability: number
+      activeVoiceRatio: number
+      avgSentenceLength: number
+      markdownValid: boolean
+      markdownIssues: string[]
+      qualityScore: number
+      recommendations: string[]
+    }
   }
 }
 
@@ -171,6 +182,63 @@ export interface CircuitBreakerStatus {
   successCount: number
   lastFailureTime?: Date
   nextAttemptTime?: Date
+}
+
+// ============================================================================
+// UPLOAD & FILE TYPES
+// ============================================================================
+
+/** Supported file types for upload */
+export type SupportedFileType = 'audio' | 'document'
+
+/** File type configuration */
+export interface FileTypeConfig {
+  type: SupportedFileType
+  mimeTypes: string[]
+  extensions: string[]
+  maxSize: number // in bytes
+  description: string
+}
+
+/** Uploaded file metadata */
+export interface UploadedFile {
+  id: string
+  userId: string
+  filename: string
+  originalName: string
+  fileType: SupportedFileType
+  mimeType: string
+  size: number // in bytes
+  tags: string[]
+  uploadedAt: Date
+  updatedAt: Date
+  storagePath: string
+  transcription?: string // For audio files
+  extractedText?: string // For documents
+  metadata?: {
+    duration?: number // For audio files, in seconds
+    pageCount?: number // For documents
+    [key: string]: unknown
+  }
+}
+
+/** Input for creating/updating an uploaded file */
+export interface UploadedFileInput {
+  filename: string
+  fileType: SupportedFileType
+  mimeType: string
+  size: number
+  tags?: string[]
+  metadata?: Record<string, unknown>
+}
+
+/** File upload progress tracking */
+export interface UploadProgress {
+  fileId: string
+  filename: string
+  progress: number // 0-100
+  status: 'pending' | 'uploading' | 'processing' | 'completed' | 'error'
+  error?: string
 }
 
 

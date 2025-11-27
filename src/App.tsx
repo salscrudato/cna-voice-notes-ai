@@ -3,9 +3,13 @@ import { lazy, Suspense } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SkipToContent } from './components/SkipToContent'
 import { LayoutShell } from './components/LayoutShell'
-import { ThemeManager } from './components/ThemeManager'
 import { LoadingSpinner } from './components/LoadingSpinner'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { LandingPage } from './pages/LandingPage'
+import { SupportPage } from './pages/SupportPage'
+import { UploadPage } from './pages/UploadPage'
+import { useWebVitals } from './hooks/useWebVitals'
+import { useServiceWorker } from './hooks/useServiceWorker'
 
 // Lazy load pages for better code splitting
 const MainChatPage = lazy(() => import('./pages/MainChatPage').then(m => ({ default: m.MainChatPage })))
@@ -18,22 +22,31 @@ const PageLoader = () => (
 )
 
 function App() {
+  // Initialize Web Vitals monitoring
+  useWebVitals({ debug: false })
+
+  // Initialize Service Worker for offline support
+  useServiceWorker({ autoRegister: true, debug: false })
+
   return (
-    <LayoutShell>
-      <ErrorBoundary>
-        <Router>
-          <ThemeManager />
-          <SkipToContent />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/chat" element={<MainChatPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </Router>
-      </ErrorBoundary>
-    </LayoutShell>
+    <ThemeProvider>
+      <LayoutShell>
+        <ErrorBoundary>
+          <Router>
+            <SkipToContent />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/chat" element={<MainChatPage />} />
+                <Route path="/upload" element={<UploadPage />} />
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </Router>
+        </ErrorBoundary>
+      </LayoutShell>
+    </ThemeProvider>
   )
 }
 

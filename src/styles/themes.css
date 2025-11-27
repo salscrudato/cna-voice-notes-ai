@@ -1,0 +1,40 @@
+/* Seasonal theme styles */
+@layer base {
+  /* Spring Theme - Fresh pastels with greens and pinks */
+  :root.theme-spring body {
+    @apply bg-gradient-to-b from-green-50 via-pink-50/30 to-green-50 text-slate-900 transition-colors duration-300;
+  }
+
+  /* Summer Theme - Warm yellows and oranges */
+  :root.theme-summer body {
+    @apply bg-gradient-to-b from-yellow-50 via-orange-50/30 to-yellow-50 text-slate-900 transition-colors duration-300;
+  }
+
+  /* Fall Theme - Warm browns and oranges */
+  :root.theme-fall body {
+    @apply bg-gradient-to-b from-orange-50 via-amber-50/30 to-orange-50 text-slate-900 transition-colors duration-300;
+  }
+
+  /* Winter Theme - Cool blues and whites */
+  :root.theme-winter body {
+    @apply bg-gradient-to-b from-blue-50 via-cyan-50/30 to-blue-50 text-slate-900 transition-colors duration-300;
+  }
+
+  /* Dark mode theme backgrounds */
+  :root.theme-spring.dark body {
+    @apply bg-gradient-to-b from-slate-950 via-green-950/20 to-slate-950;
+  }
+
+  :root.theme-summer.dark body {
+    @apply bg-gradient-to-b from-slate-950 via-orange-950/20 to-slate-950;
+  }
+
+  :root.theme-fall.dark body {
+    @apply bg-gradient-to-b from-slate-950 via-amber-950/20 to-slate-950;
+  }
+
+  :root.theme-winter.dark body {
+    @apply bg-gradient-to-b from-slate-950 via-blue-950/20 to-slate-950;
+  }
+}
+

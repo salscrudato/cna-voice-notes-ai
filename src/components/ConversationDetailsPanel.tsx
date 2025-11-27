@@ -1,7 +1,9 @@
-import React, { useState, useEffect, memo, useCallback } from 'react'
-import { FiX } from 'react-icons/fi'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { FiX } from '../utils/icons'
 import { METADATA } from '../constants'
 import { SearchableSelect } from './SearchableSelect'
+import { useTheme } from '../hooks/useTheme'
+import { getAccentColor } from '../utils/accentColors'
 import type { ConversationMetadata } from '../types'
 
 interface ConversationDetailsPanelProps {
@@ -19,17 +21,33 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
   onUpdate,
   isUpdating = false,
 }) => {
+  const { accentColor } = useTheme()
   const [formData, setFormData] = useState<ConversationMetadata>(metadata)
   const [newTag, setNewTag] = useState('')
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     setFormData(metadata)
   }, [metadata])
 
-  const handleSave = useCallback(async () => {
-    await onUpdate(formData)
-    onClose()
-  }, [formData, onUpdate, onClose])
+  // Auto-save with debounce
+  useEffect(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      if (JSON.stringify(formData) !== JSON.stringify(metadata)) {
+        onUpdate(formData)
+      }
+    }, 1000) // Auto-save after 1 second of inactivity
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [formData, metadata, onUpdate])
 
   const handleAddTag = useCallback(() => {
     if (newTag.trim()) {
@@ -55,10 +73,13 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
     <>
       <div className={`fixed top-0 right-0 h-screen w-full sm:w-96 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 shadow-xl border-l border-slate-200 dark:border-slate-800 z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 z-10">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Filters</h2>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-wider">FILTER</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-400 hover:shadow-sm dark:hover:shadow-md hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-400 hover:shadow-sm dark:hover:shadow-md hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+            style={{
+              '--tw-ring-color': getAccentColor(accentColor, '500')
+            } as React.CSSProperties}
             aria-label="Close panel"
             type="button"
           >
@@ -117,7 +138,11 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
               <button
                 onClick={handleAddTag}
                 disabled={isUpdating}
-                className="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200 disabled:opacity-50 text-sm font-semibold shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                className="px-4 py-3 text-white rounded-lg active:scale-95 transition-all duration-200 disabled:opacity-50 text-sm font-semibold shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                style={{
+                  background: `linear-gradient(to right, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+                  '--tw-ring-color': getAccentColor(accentColor, '500')
+                } as React.CSSProperties}
                 type="button"
               >
                 Add
@@ -127,12 +152,21 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
               {(formData.tags || []).map(tag => (
                 <div
                   key={tag}
-                  className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-amber-900/20 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium border border-amber-200 dark:border-amber-700/50 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                  className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium border shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                  style={{
+                    background: `linear-gradient(to right, ${getAccentColor(accentColor, '100')}40, ${getAccentColor(accentColor, '50')}20)`,
+                    color: getAccentColor(accentColor, '700'),
+                    borderColor: getAccentColor(accentColor, '200')
+                  }}
                 >
                   {tag}
                   <button
                     onClick={() => handleRemoveTag(tag)}
-                    className="hover:text-amber-900 dark:hover:text-amber-100 transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 rounded p-0.5"
+                    className="transition-all duration-200 hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 rounded p-0.5"
+                    style={{
+                      color: getAccentColor(accentColor, '700'),
+                      '--tw-ring-color': getAccentColor(accentColor, '500')
+                    } as React.CSSProperties}
                     type="button"
                   >
                     <FiX size={16} />
@@ -144,28 +178,9 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
         </div>
 
       </div>
-
-      <div className="fixed bottom-0 right-0 w-full sm:w-96 flex gap-3 p-6 border-t border-slate-200 dark:border-slate-800 bg-gradient-to-t from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 shadow-xl">
-        <button
-          onClick={onClose}
-          disabled={isUpdating}
-          className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold hover:shadow-sm focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-          type="button"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isUpdating}
-          className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-          type="button"
-        >
-          {isUpdating ? 'Saving...' : 'Save'}
-        </button>
-      </div>
     </>
   )
 }
 
-export const ConversationDetailsPanel = memo(ConversationDetailsPanelComponent)
+export const ConversationDetailsPanel = ConversationDetailsPanelComponent
 

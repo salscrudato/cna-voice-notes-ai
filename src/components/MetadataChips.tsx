@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from 'react'
-import { FiX } from 'react-icons/fi'
+import { FiX } from '../utils/icons'
 import type { ConversationMetadata } from '../types'
 
 interface MetadataChipsProps {

@@ -1,22 +1,31 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { chatService } from '../services/chatService'
 import { logger } from '../services/logger'
 import { getApiKeyErrorMessage } from '../services/config'
+import { initializeTitleService, getTitleService } from '../services/titleGenerationService'
 import { useChatState } from '../hooks/useChatState'
 import { useChatOperations } from '../hooks/useChatOperations'
 import { useToast } from '../hooks/useToast'
+import { useMetadata } from '../hooks/useMetadata'
+import { useTheme } from '../hooks/useTheme'
+import { getAccentColor } from '../utils/accentColors'
 import { ChatSidebar } from '../components/ChatSidebar'
 import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessages } from '../components/ChatMessages'
 import { ChatInput } from '../components/ChatInput'
 import { ApiErrorBanner } from '../components/ApiErrorBanner'
+import { ConversationDetailsPanel } from '../components/ConversationDetailsPanel'
 import { API } from '../constants'
 import type { ChatMessage } from '../types'
 
 const MainChatPage: React.FC = () => {
   const location = useLocation()
   const { showToast } = useToast()
+  const { accentColor } = useTheme()
+  const [showDetailsPanel, setShowDetailsPanel] = useState(false)
+  const [streamingContent, setStreamingContent] = useState('')
+  const [streamingStage, setStreamingStage] = useState<'thinking' | 'generating' | 'finalizing'>('thinking')
 
   const {
     conversations,
@@ -39,6 +48,16 @@ const MainChatPage: React.FC = () => {
     toggleSidebar,
   } = useChatState()
 
+  const currentConversation = conversations.find(c => c.id === currentConversationId)
+  const {
+    metadata,
+    isUpdating: isUpdatingMetadata,
+    updateMetadata,
+  } = useMetadata({
+    conversationId: currentConversationId,
+    initialMetadata: currentConversation?.metadata,
+  })
+
   const {
     loadConversations,
     loadMessages,
@@ -52,11 +71,11 @@ const MainChatPage: React.FC = () => {
     setApiError,
   })
 
-  // Handle new conversation creation
+  // Handle new conversation creation - direct without dialog
   const handleNewConversation = useCallback(async () => {
     try {
-      const title = `Chat ${new Date().toLocaleDateString()}`
-      logger.info('Creating new conversation', { title })
+      const title = `New Conversation`
+      logger.info('Creating new conversation')
       const conversationId = await chatService.createConversation(title)
       setCurrentConversationId(conversationId)
       setMessages([])
@@ -72,6 +91,19 @@ const MainChatPage: React.FC = () => {
   }, [setCurrentConversationId, setMessages, loadConversations, setApiError, showToast])
 
 
+
+  // Initialize title service on mount
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY
+    if (apiKey) {
+      try {
+        initializeTitleService(apiKey)
+        logger.debug('Title generation service initialized')
+      } catch (error) {
+        logger.warn('Failed to initialize title service', error)
+      }
+    }
+  }, [])
 
   // Load conversations on mount and handle navigation state
   useEffect(() => {
@@ -120,13 +152,35 @@ const MainChatPage: React.FC = () => {
     let convId = currentConversationId
     if (!convId) {
       try {
-        // Generate title from first message (first 50 chars or first sentence)
-        const title = userMessage.split(/[.!?]/)[0].substring(0, 50).trim() || 'New Chat'
-        logger.info('Creating new conversation', { title })
-        convId = await chatService.createConversation(title)
+        // Use temporary title initially
+        const tempTitle = 'New Chat'
+        logger.info('Creating new conversation', { title: tempTitle })
+        convId = await chatService.createConversation(tempTitle)
         logger.info('Conversation created', { id: convId })
         setCurrentConversationId(convId)
         await loadConversations()
+
+        // Generate AI title asynchronously in the background
+        try {
+          const titleService = getTitleService()
+          if (titleService) {
+            logger.debug('Generating AI title for conversation', { conversationId: convId })
+            const aiTitle = await titleService.generateTitle(userMessage)
+            if (aiTitle && aiTitle.trim().length > 0) {
+              logger.info('Generated AI title', { title: aiTitle, conversationId: convId })
+              await chatService.updateConversationTitle(convId, aiTitle)
+              await loadConversations()
+              logger.debug('Conversation title updated successfully', { conversationId: convId, title: aiTitle })
+            } else {
+              logger.warn('Generated title is empty, keeping default', { conversationId: convId })
+            }
+          } else {
+            logger.warn('Title service not initialized', { conversationId: convId })
+          }
+        } catch (titleError) {
+          logger.warn('Failed to generate AI title, keeping default', { conversationId: convId, error: titleError })
+          // Continue with default title, don't fail the whole operation
+        }
       } catch (error) {
         logger.error('Failed to create conversation', error)
         const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
@@ -136,6 +190,8 @@ const MainChatPage: React.FC = () => {
     }
 
     setIsLoading(true)
+    setStreamingContent('')
+    setStreamingStage('thinking')
     clearError()
 
     // Optimistically add user message to UI
@@ -151,14 +207,31 @@ const MainChatPage: React.FC = () => {
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       setIsLoading(false)
+      setStreamingContent('')
       logger.warn('Request timed out', { timeoutMs: API.REQUEST_TIMEOUT_MS })
       setApiError('Request timed out. Please check your connection and try again.')
     }, API.REQUEST_TIMEOUT_MS)
 
     try {
-      logger.info('Sending message to API')
+      logger.info('Sending message to API with streaming')
 
-      const assistantResponse = await chatService.sendMessage(convId, userMessage)
+      // Use streaming for better UX
+      const assistantResponse = await chatService.sendMessageStream(
+        convId,
+        userMessage,
+        (chunk: string) => {
+          setStreamingContent(prev => {
+            const newContent = prev + chunk
+            // Update stage based on content length
+            if (newContent.length < 50) {
+              setStreamingStage('generating')
+            } else if (newContent.length > 500) {
+              setStreamingStage('finalizing')
+            }
+            return newContent
+          })
+        }
+      )
       clearTimeout(timeoutId)
 
       if (!assistantResponse || assistantResponse.trim().length === 0) {
@@ -183,6 +256,8 @@ const MainChatPage: React.FC = () => {
       setMessages(prev => prev.filter(msg => msg.id !== optimisticUserMessage.id))
     } finally {
       setIsLoading(false)
+      setStreamingContent('')
+      setStreamingStage('thinking')
     }
   }, [inputValue, currentConversationId, loadConversations, loadMessages, isApiKeyMissing, resetInput, clearError, setCurrentConversationId, setIsLoading, setApiError, setMessages, showToast])
 
@@ -243,23 +318,46 @@ const MainChatPage: React.FC = () => {
         isOpen={sidebarOpen}
         conversations={conversations}
         currentConversationId={currentConversationId}
-        onNewConversation={handleNewConversation}
         onSelectConversation={handleSelectConversation}
         onDeleteConversation={handleDeleteConversation}
         onRenameConversation={handleRenameConversation}
       />
 
-      <div id="main-content" className="flex-1 flex flex-col bg-gradient-to-b from-white via-slate-50/30 to-white dark:from-slate-950 dark:via-slate-900/30 dark:to-slate-950 transition-colors duration-300" tabIndex={-1}>
-        <ChatHeader
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={toggleSidebar}
-          currentConversationTitle={conversations.find(c => c.id === currentConversationId)?.title}
+	      <div id="main-content" className="flex-1 flex flex-col bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 transition-colors duration-300 relative overflow-hidden" tabIndex={-1}>
+        {/* Subtle animated accent gradient background */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-5 dark:opacity-3 animate-blob"
+          style={{
+            background: `radial-gradient(circle at 20% 50%, ${getAccentColor(accentColor, '400')}, transparent 50%)`,
+          }}
         />
-        <ApiErrorBanner error={apiError} onDismiss={clearError} />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-5 dark:opacity-3 animate-blob"
+          style={{
+            background: `radial-gradient(circle at 80% 80%, ${getAccentColor(accentColor, '300')}, transparent 50%)`,
+            animationDelay: '2s'
+          }}
+        />
+        <div className="relative z-10">
+          <ChatHeader
+            sidebarOpen={sidebarOpen}
+            onToggleSidebar={toggleSidebar}
+            currentConversationTitle={currentConversation?.title}
+            onNewConversation={handleNewConversation}
+          />
+          <ApiErrorBanner error={apiError} onDismiss={clearError} />
+        </div>
 
         {/* Chat container */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <ChatMessages messages={messages} isLoading={isLoading} />
+        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+          <ChatMessages
+            messages={messages}
+            isLoading={isLoading}
+            streamingContent={streamingContent}
+            streamingStage={streamingStage}
+            onFollowUpClick={setInputValue}
+            onEditMetadata={() => setShowDetailsPanel(true)}
+          />
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
@@ -268,6 +366,24 @@ const MainChatPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Backdrop overlay for right pane */}
+      {showDetailsPanel && (
+        <div
+          className="fixed inset-0 bg-black/30 dark:bg-black/50 z-30 transition-opacity duration-300"
+          onClick={() => setShowDetailsPanel(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Conversation Details Panel */}
+      <ConversationDetailsPanel
+        isOpen={showDetailsPanel}
+        onClose={() => setShowDetailsPanel(false)}
+        metadata={metadata}
+        onUpdate={updateMetadata}
+        isUpdating={isUpdatingMetadata}
+      />
     </div>
   )
 }

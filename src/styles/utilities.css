@@ -1,0 +1,242 @@
+/* Utility classes */
+@layer utilities {
+  /* Spacing utilities */
+  .p-xs { @apply p-2; }
+  .p-sm { @apply p-3; }
+  .p-md { @apply p-4; }
+  .p-lg { @apply p-6; }
+  .p-xl { @apply p-8; }
+
+  .m-xs { @apply m-2; }
+  .m-sm { @apply m-3; }
+  .m-md { @apply m-4; }
+  .m-lg { @apply m-6; }
+  .m-xl { @apply m-8; }
+
+  .gap-xs { @apply gap-2; }
+  .gap-sm { @apply gap-3; }
+  .gap-md { @apply gap-4; }
+  .gap-lg { @apply gap-6; }
+  .gap-xl { @apply gap-8; }
+
+  /* Container utilities */
+  .container-px {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-max {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-spacing {
+    @apply px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+  }
+
+  /* Touch target sizing */
+  .touch-target {
+    @apply min-h-11 min-w-11;
+  }
+
+  @media (min-width: 640px) {
+    .touch-target {
+      @apply min-h-10 min-w-10;
+    }
+  }
+
+  /* Transition utilities */
+  .smooth-transition {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .shadow-transition {
+    @apply transition-shadow duration-300;
+  }
+
+  .transform-transition {
+    @apply transition-transform duration-300;
+  }
+
+  .color-transition {
+    @apply transition-colors duration-300;
+  }
+
+  /* Semantic color utilities */
+  .text-success {
+    @apply text-green-700 dark:text-green-300;
+  }
+
+  .text-warning {
+    @apply text-amber-700 dark:text-amber-300;
+  }
+
+  .text-error {
+    @apply text-red-700 dark:text-red-300;
+  }
+
+  .text-info {
+    @apply text-blue-700 dark:text-blue-300;
+  }
+
+  /* Glassmorphism effects */
+  .glass-light {
+    @apply bg-white/80 backdrop-blur-lg border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-lg border border-slate-700/40 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/30;
+  }
+
+  /* Gradient utilities */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 to-blue-700;
+  }
+
+  .gradient-accent {
+    @apply bg-gradient-to-br from-slate-900 dark:from-slate-50 to-slate-700 dark:to-slate-300;
+  }
+
+  .gradient-subtle {
+    @apply bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50;
+  }
+
+  .gradient-hover {
+    @apply hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-slate-800 dark:hover:to-slate-900 transition-all duration-300;
+  }
+
+  /* Shadow utilities */
+  .shadow-sm-accent {
+    box-shadow: 0 1px 2px 0 rgba(59, 130, 246, 0.1);
+  }
+
+  .shadow-md-accent {
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.15);
+  }
+
+  .shadow-lg-accent {
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Elevation utilities */
+  .elevation-1 {
+    @apply shadow-sm;
+  }
+
+  .elevation-2 {
+    @apply shadow-md;
+  }
+
+  .elevation-3 {
+    @apply shadow-lg;
+  }
+
+  .elevation-4 {
+    @apply shadow-xl;
+  }
+
+  .elevation-5 {
+    @apply shadow-2xl;
+  }
+
+  /* Safe area support for notched devices */
+  .safe-area-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .safe-area-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .safe-area-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Landscape orientation utilities */
+  @media (orientation: landscape) {
+    .landscape-hidden {
+      display: none;
+    }
+
+    .landscape-compact {
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+  }
+
+  /* Portrait orientation utilities */
+  @media (orientation: portrait) {
+    .portrait-hidden {
+      display: none;
+    }
+  }
+
+  /* ============================================================================
+     ACCESSIBILITY UTILITIES
+     ============================================================================ */
+
+  /* Screen reader only - hide visually but keep accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Focus visible styles for keyboard navigation */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .focus-visible-ring-accent {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400;
+  }
+
+  /* Skip to content link */
+  .skip-to-content {
+    @apply sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-0 focus-visible:left-0 focus-visible:z-50 focus-visible:bg-blue-600 focus-visible:text-white focus-visible:px-4 focus-visible:py-2 focus-visible:rounded-b-md;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: more) {
+    .text-muted {
+      @apply text-slate-700 dark:text-slate-300;
+    }
+
+    .border-subtle {
+      @apply border-slate-400 dark:border-slate-600;
+    }
+  }
+
+  /* Forced colors mode support */
+  @media (forced-colors: active) {
+    .glass-effect {
+      border: 1px solid CanvasText;
+    }
+
+    button {
+      border: 1px solid ButtonBorder;
+    }
+  }
+}
+

@@ -1,4 +1,6 @@
-import React, { memo } from 'react'
+import React from 'react'
+import { useTheme } from '../hooks/useTheme'
+import { getAccentColor } from '../utils/accentColors'
 
 interface EmptyStateProps {
   icon?: React.ReactNode
@@ -18,6 +20,7 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
   action,
   variant = 'default',
 }) => {
+  const { accentColor } = useTheme()
   const isCompact = variant === 'compact'
 
   return (
@@ -25,20 +28,28 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
       <div className={`text-center animate-fade-in ${isCompact ? 'max-w-sm' : 'max-w-2xl'}`}>
         {icon && (
           <div className={`mb-8 flex justify-center ${isCompact ? '' : ''}`} aria-hidden="true">
-            <div className="inline-flex items-center justify-center p-6 bg-gradient-to-br from-blue-100 via-blue-50 to-cyan-100 dark:from-blue-900/40 dark:via-blue-900/30 dark:to-cyan-900/30 shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 dark:hover:shadow-blue-500/20 hover:scale-110 transition-all duration-300 rounded-3xl border border-blue-200/50 dark:border-blue-700/50 hover:border-blue-300/80 dark:hover:border-blue-600/80 hover:-translate-y-2">
-              {icon}
+            <div className="inline-flex items-center justify-center p-5 transition-all duration-300 rounded-3xl hover:scale-110 hover:-translate-y-2 hover:shadow-xl dark:hover:shadow-lg shadow-lg dark:shadow-md border"
+              style={{
+                background: `linear-gradient(to bottom right, ${getAccentColor(accentColor, '100')}, ${getAccentColor(accentColor, '50')})`,
+                borderColor: `${getAccentColor(accentColor, '200')}80`,
+                boxShadow: `0 0 0 0 ${getAccentColor(accentColor, '500')}33`
+              }}
+            >
+              <div style={{ color: getAccentColor(accentColor, '600') }}>
+                {icon}
+              </div>
             </div>
           </div>
         )}
 
         <h2 className={`font-bold text-slate-900 dark:text-slate-50 mb-3 ${
-          isCompact ? 'text-xl' : 'text-4xl sm:text-5xl'
+          isCompact ? 'text-lg' : 'text-3xl sm:text-4xl'
         }`}>
           {title}
         </h2>
 
         <p className={`text-slate-600 dark:text-slate-400 mb-8 ${
-          isCompact ? 'text-sm' : 'text-lg font-medium'
+          isCompact ? 'text-sm' : 'text-base'
         }`}>
           {description}
         </p>
@@ -46,7 +57,11 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
         {action && (
           <button
             onClick={action.onClick}
-            className="btn-primary inline-block hover:shadow-lg hover:shadow-blue-500/40 dark:hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-1 active:scale-95"
+            className="inline-block transition-all duration-200 hover:shadow-lg active:scale-95 hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 text-white rounded-lg px-6 py-2.5 font-medium"
+            style={{
+              background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+              '--tw-ring-color': getAccentColor(accentColor, '500')
+            } as React.CSSProperties}
             type="button"
           >
             {action.label}
@@ -57,5 +72,5 @@ const EmptyStateComponent: React.FC<EmptyStateProps> = ({
   )
 }
 
-export const EmptyState = memo(EmptyStateComponent)
+export const EmptyState = EmptyStateComponent
 

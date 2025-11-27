@@ -1,131 +1,186 @@
-import React, { useRef, useEffect, memo, useState, useCallback } from 'react'
-import { FiCopy, FiCheck } from 'react-icons/fi'
+import React, { useRef, useEffect, useState, useCallback, memo } from 'react'
+import { FiCopy, FiCheck } from '../utils/icons'
 import { MessageRenderer } from './MessageRenderer'
 import { EmptyState } from './EmptyState'
+import { StreamingLoadingIndicator } from './StreamingLoadingIndicator'
 import { UI } from '../constants'
 import { formatTime } from '../utils/formatting'
+import { useTheme } from '../hooks/useTheme'
+import { getAccentColor } from '../utils/accentColors'
 import type { ChatMessage } from '../types'
+import { logger } from '../services/logger'
 
 interface ChatMessagesProps {
   messages: ChatMessage[]
   isLoading: boolean
+  streamingContent?: string
+  streamingStage?: 'thinking' | 'generating' | 'finalizing'
+  onFollowUpClick?: (question: string) => void
+  onEditMetadata?: () => void
 }
 
 interface MessageItemProps {
   message: ChatMessage
   isCopied: boolean
   onCopy: (messageId: string, content: string) => void
+  onFollowUpClick?: (question: string) => void
 }
 
 // Memoized message item component for performance optimization
-const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy }) => (
-  <div
-    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-in-${msg.role === 'user' ? 'right' : 'left'} group`}
-    role="article"
-    aria-label={`${msg.role === 'user' ? 'Your message' : 'Assistant message'}`}
-  >
-    <div className="flex flex-col gap-2 max-w-2xl">
-      <div className="flex items-end gap-2">
-        <div
-          className={`px-5 py-3.5 rounded-2xl transition-all duration-300 ${
-            msg.role === 'user'
-              ? 'bg-gradient-to-br from-blue-600 via-blue-600 to-cyan-600 text-white rounded-br-none shadow-md hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-500/40 hover:-translate-y-1.5 hover:scale-[1.01] border border-blue-500/40 hover:border-blue-400/60 active:scale-95'
-              : 'bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 rounded-bl-none shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300/80 dark:hover:border-slate-600/80 hover:-translate-y-1 hover:scale-[1.01]'
-          }`}
-        >
-          {msg.role === 'user' ? (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words font-medium">{msg.content}</p>
-          ) : (
-            <MessageRenderer content={msg.content} />
+const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy, onFollowUpClick }) => {
+  const { accentColor } = useTheme()
+
+  return (
+    <div
+      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-in-${msg.role === 'user' ? 'right' : 'left'} group px-2 sm:px-0 w-full`}
+      role="article"
+      aria-label={`${msg.role === 'user' ? 'Your message' : 'Assistant message'}`}
+    >
+      <div className="flex flex-col gap-2.5 max-w-3xl">
+        <div className="flex items-end gap-3">
+          <div
+            className={`message-bubble ${
+              msg.role === 'user'
+                ? 'message-bubble-user'
+                : 'message-bubble-assistant'
+            }`}
+            style={msg.role === 'user' ? {
+              background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+              borderColor: getAccentColor(accentColor, '500'),
+            } : undefined}
+          >
+            {msg.role === 'user' ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words font-medium text-white">{msg.content}</p>
+            ) : (
+              <MessageRenderer content={msg.content} onFollowUpClick={onFollowUpClick} />
+            )}
+          </div>
+          {msg.role === 'assistant' && (
+            <button
+              onClick={() => onCopy(msg.id, msg.content)}
+              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-3 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-125 hover:-translate-y-1 active:scale-95 active:translate-y-0 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-300/50 dark:border-slate-600/50 hover:border-slate-400/80 dark:hover:border-slate-500/80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+              title="Copy message"
+              aria-label="Copy message"
+              type="button"
+            >
+              {isCopied ? (
+                <FiCheck size={16} className="text-green-600 dark:text-green-400" />
+              ) : (
+                <FiCopy size={16} />
+              )}
+            </button>
           )}
         </div>
-        {msg.role === 'assistant' && (
-          <button
-            onClick={() => onCopy(msg.id, msg.content)}
-            className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-2.5 hover:bg-slate-200 dark:hover:bg-slate-700/60 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-125 active:scale-95 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-300/50 dark:border-slate-600/50 hover:border-slate-400/80 dark:hover:border-slate-500/80 hover:-translate-y-0.5"
-            title="Copy message"
-            aria-label="Copy message"
-            type="button"
-          >
-            {isCopied ? (
-              <FiCheck size={18} className="text-green-600 dark:text-green-400" />
-            ) : (
-              <FiCopy size={18} />
-            )}
-          </button>
-        )}
-      </div>
-      {/* Message Timestamp - always visible with improved styling */}
-      <div className={`text-xs font-medium transition-opacity duration-200 ${
-        msg.role === 'user' ? 'text-right pr-1' : 'text-left pl-1'
-      } ${msg.role === 'user' ? 'text-blue-100' : 'text-slate-500'}`}>
-        {msg.createdAt ? formatTime(msg.createdAt) : ''}
+        {/* Message Timestamp - subtle styling */}
+        <div
+          className={`message-timestamp text-xs transition-opacity duration-200 ${
+            msg.role === 'user' ? 'message-timestamp-user' : 'message-timestamp-assistant'
+          }`}
+        >
+          {msg.createdAt ? formatTime(msg.createdAt) : ''}
+        </div>
       </div>
     </div>
-  </div>
-))
+  )
+})
 
-const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({ messages, isLoading }) => {
+MessageItem.displayName = 'MessageItem'
+
+const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
+  messages,
+  isLoading,
+  streamingContent = '',
+  streamingStage = 'thinking',
+  onFollowUpClick,
+  onEditMetadata
+}) => {
+  const { accentColor } = useTheme()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: UI.MESSAGE_SCROLL_BEHAVIOR })
-  }, [messages, isLoading])
+  }, [messages, isLoading, streamingContent])
 
   const handleCopyMessage = useCallback((messageId: string, content: string) => {
     navigator.clipboard.writeText(content).then(() => {
       setCopiedId(messageId)
       setTimeout(() => setCopiedId(null), UI.COPY_FEEDBACK_DURATION)
     }).catch((error) => {
-      console.error('Failed to copy message:', error)
+      logger.error('Failed to copy message', error)
     })
   }, [])
 
+  // Memoize the follow-up click handler
+  const handleFollowUpClick = useCallback((question: string) => {
+    onFollowUpClick?.(question)
+  }, [onFollowUpClick])
+
   return (
-    <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 bg-gradient-to-b from-white via-slate-50/30 to-white dark:from-slate-950 dark:via-slate-900/30 dark:to-slate-950 transition-colors duration-300" role="main" aria-label="Chat messages">
-      {messages.length === 0 && !isLoading && (
-        <EmptyState
-          icon={
-            <svg className="w-16 h-16 text-blue-600 hover:text-blue-700 transition-colors duration-300 hover:scale-105 animate-pulse-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          }
-          title="Welcome to Marlamade"
-          description="Chat with AI about your underwriting calls"
-        />
+    <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-5 sm:space-y-7 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 transition-colors duration-300 flex flex-col items-center relative" role="main" aria-label="Chat messages">
+      {/* Filter button - positioned on the right side, centered vertically */}
+      {onEditMetadata && (
+        <button
+          onClick={onEditMetadata}
+          className="fixed right-6 top-1/2 transform -translate-y-1/2 z-20 px-4 py-6 rounded-full text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-125 hover:-translate-x-1 active:scale-95 flex items-center justify-center group"
+          style={{
+            background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+            width: '48px',
+            height: '72px',
+          }}
+          aria-label="Open filters"
+          title="Open filters"
+          type="button"
+        >
+          <span className="text-xs font-medium leading-none transform -rotate-90 whitespace-nowrap group-hover:scale-110 transition-transform duration-300">FILTER</span>
+        </button>
       )}
 
-      {messages.map((msg) => (
-        <MessageItem
-          key={msg.id}
-          message={msg}
-          isCopied={copiedId === msg.id}
-          onCopy={handleCopyMessage}
-        />
-      ))}
+      <div className="w-full max-w-4xl space-y-5 sm:space-y-7">
+        {messages.length === 0 && !isLoading && (
+          <EmptyState
+            icon={
+              <svg className="w-16 h-16 transition-colors duration-300 hover:scale-105 animate-pulse-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: getAccentColor(accentColor, '600') }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            }
+            title="Welcome to Marmalade"
+            description="Made for Underwriters"
+          />
+        )}
 
-      {isLoading && (
-        <div className="flex justify-start animate-slide-in-left" role="status" aria-live="polite" aria-label="AI is thinking">
-          <div className="bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-50 px-5 py-3.5 rounded-2xl rounded-bl-none shadow-md dark:shadow-lg dark:shadow-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300/80 dark:hover:border-slate-600/80 transition-all duration-300 hover:shadow-md dark:hover:shadow-lg hover:-translate-y-1">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1.5 items-center h-5">
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0s' }} aria-hidden="true" />
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0.15s' }} aria-hidden="true" />
-                <div className="w-2.5 h-2.5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-md dark:shadow-blue-500/30 animate-wave-dot" style={{ animationDelay: '0.3s' }} aria-hidden="true" />
+        {messages.map((msg) => (
+          <MessageItem
+            key={msg.id}
+            message={msg}
+            isCopied={copiedId === msg.id}
+            onCopy={handleCopyMessage}
+            onFollowUpClick={handleFollowUpClick}
+          />
+        ))}
+
+        {isLoading && (
+          <>
+            {streamingContent && (
+              <div className="flex justify-start animate-fade-in-up" role="article" aria-label="Streaming response">
+                <div className="message-bubble message-bubble-assistant animate-fade-in-up" style={{
+                  animation: 'fade-in-up 0.4s ease-out forwards'
+                }}>
+                  <MessageRenderer content={streamingContent} onFollowUpClick={onFollowUpClick} />
+                </div>
               </div>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 tracking-wide">
-                Thinking<span className="inline-block animate-thinking-dots w-3 text-left">.</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+            )}
+            <StreamingLoadingIndicator stage={streamingStage} isStreaming={true} />
+          </>
+        )}
 
-      <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} />
+      </div>
     </main>
   )
-}
+};
 
-export const ChatMessages = memo(ChatMessagesComponent)
+
+export const ChatMessages = ChatMessagesComponent
+
 

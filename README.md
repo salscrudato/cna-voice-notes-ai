@@ -1,80 +1,141 @@
-# CNA Voice Notes AI Workbench
+# CNA Voice Notes AI
 
-A modern, ChatGPT-like conversational AI interface for underwriting conversations.
+Modern conversational AI interface for underwriting conversations. Built with React 19, TypeScript, Firebase, and OpenAI GPT-4o-mini.
 
-## Quick Start (2 minutes)
+## Quick Start
 
-### 1. Get Your OpenAI API Key
-- Go to https://platform.openai.com/api-keys
-- Create a new secret key
-- Copy it (starts with `sk-`)
-
-### 2. Configure Environment
 ```bash
-# macOS/Linux
-./setup.sh
+# 1. Install dependencies
+npm install
 
-# Windows
-setup.bat
-
-# Or manually:
+# 2. Configure environment
 cp .env.example .env.local
-# Edit .env.local and paste your API key
-```
+# Edit .env.local and add: VITE_OPENAI_API_KEY=sk-your-key-here
 
-### 3. Start the App
-```bash
+# 3. Start dev server
 npm run dev
-# Visit http://localhost:5174
+# Visit http://localhost:5173
 ```
 
-For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
+**Get OpenAI API Key:** https://platform.openai.com/api-keys
+
+## Commands
+
+```bash
+npm run dev      # Start dev server (localhost:5173)
+npm run build    # Build for production
+npm run lint     # Check code quality
+npm run preview  # Preview production build
+```
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS v4
-- **Backend**: Firebase Firestore
-- **AI**: OpenAI GPT-4o-mini (fast, cheap, smart)
-- **Icons**: React Icons
-
-## Model: GPT-4o-mini
-
-- **Fast**: Responds in seconds
-- **Cheap**: ~$0.00015 per 1K input tokens
-- **Smart**: High-quality responses
-- **Reliable**: 99.9% uptime
+- **Frontend:** React 19 + TypeScript + Vite
+- **Styling:** Tailwind CSS v4
+- **Database:** Firebase Firestore
+- **AI:** OpenAI GPT-4o-mini
+- **Icons:** React Icons
 
 ## Architecture
 
 ```
 src/
-├── components/         # Reusable UI components (all memoized)
-│   ├── landing/       # Landing page sub-components
-│   ├── ChatHeader.tsx
-│   ├── ChatInput.tsx
-│   ├── ChatMessages.tsx
-│   ├── ChatSidebar.tsx
-│   └── ... (13 total)
-├── pages/             # Page components (lazy loaded)
-│   ├── LandingPage.tsx
-│   ├── MainChatPage.tsx
-│   └── ChatHistoryPage.tsx
-├── hooks/             # Custom React hooks (5 files)
-├── services/          # Business logic & API (3 files)
-├── utils/             # Utility functions (8 files)
-├── types/             # TypeScript definitions
-├── constants/         # App-wide constants
-├── firebase.ts        # Firebase configuration
-├── App.tsx            # Router setup
-└── index.css          # Global styles & animations
+├── components/      # UI components (memoized)
+│   ├── landing/    # Landing page sections
+│   ├── ai/         # AI-specific components
+│   └── ...         # Chat, sidebar, modals, etc.
+├── pages/          # Route pages (lazy loaded)
+├── hooks/          # Custom React hooks
+├── services/       # Business logic & API
+├── utils/          # Helper functions
+├── types/          # TypeScript definitions
+├── constants/      # App constants
+└── lib/            # AI utilities
 ```
 
 ## Features
 
-- **Conversational AI**: Chat with GPT-4o-mini powered by OpenAI
-- **Chat History**: Browse and manage previous conversations
-- **Firestore Persistence**: All conversations saved to Firebase
-- **Modern UI**: ChatGPT-like interface with smooth animations
-- **Responsive Design**: Works on desktop and mobile
+- **AI Chat:** GPT-4o-mini powered conversations
+- **Persistence:** Firestore database storage
+- **Metadata:** Auto-extracted conversation metadata
+- **Dark Mode:** System-aware theme switching
+- **Responsive:** Mobile and desktop optimized
+- **Accessible:** ARIA labels, keyboard navigation
+
+## Configuration
+
+### Environment Variables
+
+```env
+# Required
+VITE_OPENAI_API_KEY=sk-your-key-here
+
+# Optional (defaults shown)
+VITE_CHAT_PROVIDER=openai-direct
+VITE_FIREBASE_PROJECT_ID=generic-voice
 ```
+
+### Chat Providers
+
+- **`openai-direct`** - Direct OpenAI API (development)
+- **`proxied`** - Backend proxy (production recommended)
+
+Set via `VITE_CHAT_PROVIDER` environment variable.
+
+## Deployment
+
+```bash
+# Build
+npm run build
+
+# Deploy to Firebase
+npx firebase deploy --project generic-voice
+```
+
+**Live:** https://generic-voice.web.app
+
+## Troubleshooting
+
+**API key errors:**
+- Ensure `.env.local` exists with `VITE_OPENAI_API_KEY`
+- Restart dev server after changing `.env.local`
+
+**Build errors:**
+```bash
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+**Firestore permissions:**
+- Check Firebase Console security rules
+- Verify project ID matches configuration
+
+## Performance
+
+- **Lazy Loading:** MainChatPage code-split
+- **Memoization:** All components use React.memo
+- **Optimistic UI:** Instant message updates
+- **Error Boundaries:** Graceful error handling
+- **Circuit Breaker:** API resilience pattern
+
+## Development
+
+**Prerequisites:**
+- Node.js 18+
+- npm 9+
+- OpenAI API key
+- Firebase project
+
+**Code Quality:**
+- TypeScript strict mode enabled
+- ESLint configured
+- All components typed
+- No `any` types
+
+**Best Practices:**
+- Functional components only
+- Custom hooks for logic separation
+- Proper dependency arrays
+- Error boundaries implemented
+- Logger service for debugging
