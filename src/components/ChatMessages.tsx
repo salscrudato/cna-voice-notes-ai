@@ -145,7 +145,7 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
               </svg>
             }
             title="Welcome to Marmalade"
-            description="Your AI-powered underwriting assistant. Upload voice notes from broker calls and ask me anything about the discussion."
+            description="Made for Underwriters"
             suggestions={[
               "What were the key coverage requests from this call?",
               "Summarize the risk exposures discussed",
