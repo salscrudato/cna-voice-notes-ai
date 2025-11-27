@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { FiActivity } from 'react-icons/fi'
+import { FiActivity } from '../utils/icons'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
 

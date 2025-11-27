@@ -1,29 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import type { AccentColor } from '../utils/accentColors'
+import { ThemeContext, AVAILABLE_THEMES, AVAILABLE_ACCENT_COLORS } from './themeContextDef'
+import type { Theme, ThemeContextType } from './themeContextDef'
 
-export type Theme = 'light' | 'dark'
-
-interface ThemeContextType {
-  theme: Theme
-  isDarkMode: boolean
-  accentColor: AccentColor
-  setTheme: (theme: Theme) => void
-  toggleTheme: () => void
-  setAccentColor: (color: AccentColor) => void
-  availableThemes: Theme[]
-  availableAccentColors: AccentColor[]
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
+export type { Theme, ThemeContextType }
+export { ThemeContext }
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const availableThemes: Theme[] = ['light', 'dark']
-  const availableAccentColors: AccentColor[] = ['blue', 'emerald', 'violet', 'red', 'amber', 'slate']
-
   // Initialize theme from localStorage or default to light mode
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme') as Theme
-    return (saved && availableThemes.includes(saved)) ? saved : 'light'
+    return (saved && AVAILABLE_THEMES.includes(saved)) ? saved : 'light'
   })
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -34,7 +21,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Initialize accent color from localStorage or default to red
   const [accentColor, setAccentColorState] = useState<AccentColor>(() => {
     const saved = localStorage.getItem('accentColor') as AccentColor
-    return (saved && availableAccentColors.includes(saved)) ? saved : 'red'
+    return (saved && AVAILABLE_ACCENT_COLORS.includes(saved)) ? saved : 'red'
   })
 
   // Apply theme and accent color to DOM
@@ -59,14 +46,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme, accentColor, applyTheme])
 
   const setTheme = useCallback((newTheme: Theme) => {
-    if (!availableThemes.includes(newTheme)) return
+    if (!AVAILABLE_THEMES.includes(newTheme)) return
     setThemeState(newTheme)
     localStorage.setItem('theme', newTheme)
     setIsDarkMode(newTheme === 'dark')
   }, [])
 
   const setAccentColor = useCallback((newColor: AccentColor) => {
-    if (!availableAccentColors.includes(newColor)) return
+    if (!AVAILABLE_ACCENT_COLORS.includes(newColor)) return
     setAccentColorState(newColor)
     localStorage.setItem('accentColor', newColor)
   }, [])
@@ -87,8 +74,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme,
     toggleTheme,
     setAccentColor,
-    availableThemes,
-    availableAccentColors,
+    availableThemes: AVAILABLE_THEMES,
+    availableAccentColors: AVAILABLE_ACCENT_COLORS,
   }
 
   return (
@@ -98,11 +85,5 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   )
 }
 
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext)
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-  return context
-}
+// useTheme hook is exported from src/hooks/useTheme.ts to satisfy react-refresh
 

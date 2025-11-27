@@ -20,8 +20,8 @@ export default defineConfig({
           // Separate vendor chunks to leverage browser caching
           // React ecosystem - frequently updated but stable API
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          // Firebase - large library, good to isolate
-          'vendor-firebase': ['firebase'],
+          // Firebase - using specific submodules for tree-shaking
+          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/storage', 'firebase/analytics'],
           // OpenAI - external API client, stable
           'vendor-openai': ['openai'],
           // Icons - large icon library, good to isolate

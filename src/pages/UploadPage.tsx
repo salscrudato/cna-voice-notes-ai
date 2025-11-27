@@ -3,17 +3,84 @@
  * Main page for file uploads and management
  */
 
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo, useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowLeft, FiAlertCircle, FiCheckCircle } from '../utils/icons'
+import { FiArrowLeft, FiAlertCircle, FiCheckCircle, FiX } from '../utils/icons'
 import { FileUploadZone } from '../components/FileUploadZone'
 import { FileList } from '../components/FileList'
-import { TagInput } from '../components/TagInput'
 import { useUploadedFiles } from '../hooks/useUploadedFiles'
 import { useToast } from '../hooks/useToast'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
 import type { UploadedFile } from '../types'
+
+// Simple inline TagInput component
+interface TagInputProps {
+  tags: string[]
+  onTagsChange: (tags: string[]) => void
+}
+
+const TagInput: React.FC<TagInputProps> = memo(({ tags, onTagsChange }) => {
+  const [inputValue, setInputValue] = useState('')
+
+  const handleAddTag = useCallback(() => {
+    const trimmed = inputValue.trim()
+    if (trimmed && !tags.includes(trimmed)) {
+      onTagsChange([...tags, trimmed])
+      setInputValue('')
+    }
+  }, [inputValue, tags, onTagsChange])
+
+  const handleRemoveTag = useCallback((tagToRemove: string) => {
+    onTagsChange(tags.filter(t => t !== tagToRemove))
+  }, [tags, onTagsChange])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddTag()
+    }
+  }, [handleAddTag])
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add a tag..."
+          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={handleAddTag}
+          type="button"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          Add
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+          >
+            {tag}
+            <button
+              onClick={() => handleRemoveTag(tag)}
+              type="button"
+              className="hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+            >
+              <FiX size={14} />
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+})
 
 // File type configurations
 const FILE_CONFIGS = {

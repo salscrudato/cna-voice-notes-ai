@@ -1,5 +1,15 @@
-// Re-export from ThemeContext for backward compatibility
-export { useTheme } from '../contexts/ThemeContext'
-export type { Theme } from '../contexts/ThemeContext'
-export type { AccentColor } from '../utils/accentColors'
+import { useContext } from 'react'
+import { ThemeContext } from '../contexts/ThemeContext'
+import type { ThemeContextType, Theme } from '../contexts/ThemeContext'
+import type { AccentColor } from '../utils/accentColors'
+
+export type { Theme, ThemeContextType, AccentColor }
+
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext)
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider')
+  }
+  return context
+}
 

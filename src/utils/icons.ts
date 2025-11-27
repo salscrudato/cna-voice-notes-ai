@@ -6,6 +6,7 @@
 
 // Feather Icons (fi)
 export {
+  FiActivity,
   FiAlertTriangle,
   FiCheckCircle,
   FiTrendingUp,
@@ -40,6 +41,8 @@ export {
   FiMail,
   FiPhone,
   FiInfo,
+  FiLoader,
+  FiSend,
 } from 'react-icons/fi'
 
 // Ionicons (io5)

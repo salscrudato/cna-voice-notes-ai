@@ -140,12 +140,19 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
         {messages.length === 0 && !isLoading && (
           <EmptyState
             icon={
-              <svg className="w-16 h-16 transition-colors duration-300 hover:scale-105 animate-pulse-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: getAccentColor(accentColor, '600') }}>
+              <svg className="w-16 h-16 transition-colors duration-300 hover:scale-105" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: getAccentColor(accentColor, '600') }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             }
             title="Welcome to Marmalade"
-            description="Made for Underwriters"
+            description="Your AI-powered underwriting assistant. Upload voice notes from broker calls and ask me anything about the discussion."
+            suggestions={[
+              "What were the key coverage requests from this call?",
+              "Summarize the risk exposures discussed",
+              "What follow-up items did the broker mention?",
+              "Are there any coverage gaps I should address?"
+            ]}
+            onSuggestionClick={onFollowUpClick}
           />
         )}
 
@@ -163,9 +170,7 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
           <>
             {streamingContent && (
               <div className="flex justify-start animate-fade-in-up" role="article" aria-label="Streaming response">
-                <div className="message-bubble message-bubble-assistant animate-fade-in-up" style={{
-                  animation: 'fade-in-up 0.4s ease-out forwards'
-                }}>
+                <div className="message-bubble message-bubble-assistant animate-fade-in-up">
                   <MessageRenderer content={streamingContent} onFollowUpClick={onFollowUpClick} />
                 </div>
               </div>

@@ -57,7 +57,7 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
     try {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
-        const lastEntry = entries[entries.length - 1] as any
+        const lastEntry = entries[entries.length - 1] as PerformanceEntry & { renderTime?: number; loadTime?: number }
         const value = lastEntry.renderTime || lastEntry.loadTime || 0
         const metric: WebVitalsMetric = {
           name: 'LCP',
@@ -70,7 +70,7 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
         onMetric?.(metric)
       })
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] })
-    } catch (e) {
+    } catch {
       console.debug('LCP observer not supported')
     }
 
@@ -78,9 +78,10 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
     try {
       const clsObserver = new PerformanceObserver((list) => {
         let clsValue = 0
-        list.getEntries().forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value
+        list.getEntries().forEach((entry) => {
+          const layoutEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number }
+          if (!layoutEntry.hadRecentInput) {
+            clsValue += layoutEntry.value || 0
           }
         })
         const metric: WebVitalsMetric = {
@@ -94,7 +95,7 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
         onMetric?.(metric)
       })
       clsObserver.observe({ entryTypes: ['layout-shift'] })
-    } catch (e) {
+    } catch {
       console.debug('CLS observer not supported')
     }
 
@@ -102,7 +103,7 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
     try {
       const inpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
-        const maxDuration = Math.max(...entries.map((e: any) => e.duration))
+        const maxDuration = Math.max(...entries.map((e) => e.duration))
         const metric: WebVitalsMetric = {
           name: 'INP',
           value: maxDuration,
@@ -114,7 +115,7 @@ export function initWebVitals(onMetric?: (metric: WebVitalsMetric) => void): voi
         onMetric?.(metric)
       })
       inpObserver.observe({ entryTypes: ['event'] })
-    } catch (e) {
+    } catch {
       console.debug('INP observer not supported')
     }
   }

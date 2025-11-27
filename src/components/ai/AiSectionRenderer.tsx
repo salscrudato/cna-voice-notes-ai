@@ -409,52 +409,35 @@ interface AiSectionRendererProps {
 
 const AiSectionRendererComponent: React.FC<AiSectionRendererProps> = ({ section, onFollowUpClick }) => {
   return (
-    <div className="space-y-3 mb-5 last:mb-0 animate-fade-in-up" style={{
-      animation: 'fade-in-up 0.5s ease-out forwards'
-    }}>
+    <div className="space-y-3 mb-5 last:mb-0 animate-fade-in-up">
       {section.title && <SectionTitle title={section.title} type={section.type} />}
 
       {section.contentMarkdown && (
-        <div className="space-y-2 animate-fade-in-up" style={{
-          animation: 'fade-in-up 0.5s ease-out forwards',
-          animationDelay: '0.1s'
-        }}>
+        <div className="space-y-2 animate-fade-in-up [animation-delay:100ms]">
           <MarkdownContent content={section.contentMarkdown} />
         </div>
       )}
 
       {section.listItems && section.listItems.length > 0 && (
-        <div className="space-y-1.5 animate-fade-in-up" style={{
-          animation: 'fade-in-up 0.5s ease-out forwards',
-          animationDelay: '0.2s'
-        }}>
+        <div className="space-y-1.5 animate-fade-in-up [animation-delay:200ms]">
           <ListItems items={section.listItems} />
         </div>
       )}
 
       {section.metrics && section.metrics.length > 0 && (
-        <div className="space-y-2 animate-fade-in-up" style={{
-          animation: 'fade-in-up 0.5s ease-out forwards',
-          animationDelay: '0.3s'
-        }}>
+        <div className="space-y-2 animate-fade-in-up [animation-delay:300ms]">
           <MetricsGrid metrics={section.metrics} />
         </div>
       )}
 
       {section.table && (
-        <div className="space-y-2 animate-fade-in-up" style={{
-          animation: 'fade-in-up 0.5s ease-out forwards',
-          animationDelay: '0.4s'
-        }}>
+        <div className="space-y-2 animate-fade-in-up [animation-delay:400ms]">
           <TableRenderer table={section.table} />
         </div>
       )}
 
       {section.subsections && section.subsections.length > 0 && (
-        <div className="ml-3 mt-3 space-y-3 border-l-4 border-blue-300 dark:border-blue-700 pl-3 py-1.5 animate-fade-in-up" style={{
-          animation: 'fade-in-up 0.5s ease-out forwards',
-          animationDelay: '0.5s'
-        }}>
+        <div className="ml-3 mt-3 space-y-3 border-l-4 border-blue-300 dark:border-blue-700 pl-3 py-1.5 animate-fade-in-up [animation-delay:500ms]">
           {section.subsections.map((subsection, index) => (
             <AiSectionRendererComponent
               key={`subsection-${index}`}

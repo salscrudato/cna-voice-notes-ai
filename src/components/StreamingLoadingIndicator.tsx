@@ -1,5 +1,5 @@
-import React, { memo, useState, useEffect } from 'react'
-import { FiCpu, FiZap, FiCheck } from 'react-icons/fi'
+import React, { memo, useState, useEffect, useMemo } from 'react'
+import { FiLoader, FiSend, FiCheck } from '../utils/icons'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
 
@@ -8,127 +8,144 @@ interface StreamingLoadingIndicatorProps {
   isStreaming?: boolean
 }
 
+// Stage progress configuration
+const STAGE_CONFIG = {
+  thinking: { base: 0, target: 30 },
+  generating: { base: 33, target: 75 },
+  finalizing: { base: 80, target: 100 },
+} as const
+
+// Inner component that handles progress animation for a single stage
+const ProgressAnimator: React.FC<{
+  stage: 'thinking' | 'generating' | 'finalizing'
+  onProgress: (progress: number) => void
+}> = memo(({ stage, onProgress }) => {
+  const { base, target } = STAGE_CONFIG[stage]
+
+  useEffect(() => {
+    let current = base
+    onProgress(current)
+
+    const interval = setInterval(() => {
+      if (current < target) {
+        current += 1
+        onProgress(current)
+      }
+    }, 50)
+
+    return () => clearInterval(interval)
+  }, [base, target, onProgress])
+
+  return null
+})
+
+ProgressAnimator.displayName = 'ProgressAnimator'
+
 const StreamingLoadingIndicatorComponent: React.FC<StreamingLoadingIndicatorProps> = ({
   stage = 'thinking',
 }) => {
   const { accentColor } = useTheme()
-  const [displayStage, setDisplayStage] = useState(stage)
+  const [progress, setProgress] = useState<number>(STAGE_CONFIG[stage].base)
 
-  useEffect(() => {
-    setDisplayStage(stage)
-  }, [stage])
-
-  const stageConfig = {
+  const stageConfig = useMemo(() => ({
     thinking: {
-      label: 'Analyzing your question',
-      description: 'Understanding context and intent',
-      icon: FiCpu,
+      label: 'Analyzing',
+      description: 'Understanding your question',
+      icon: FiLoader,
     },
     generating: {
-      label: 'Generating response',
-      description: 'Crafting a thoughtful answer',
-      icon: FiZap,
+      label: 'Generating',
+      description: 'Crafting response',
+      icon: FiSend,
     },
     finalizing: {
       label: 'Finalizing',
-      description: 'Polishing the response',
+      description: 'Almost ready',
       icon: FiCheck,
     },
-  }
+  }), [])
 
-  const config = stageConfig[displayStage]
-  const accentHex = getAccentColor(accentColor, '600')
-  const accentHex700 = getAccentColor(accentColor, '700')
-  const accentHex500 = getAccentColor(accentColor, '500')
+  const config = stageConfig[stage]
+  const accentHex = getAccentColor(accentColor, '500')
+  const accentHex600 = getAccentColor(accentColor, '600')
+  const IconComponent = config.icon
 
   return (
-    <div className="flex justify-start animate-slide-in-left" role="status" aria-live="polite" aria-label={`AI is ${displayStage}: ${config.label}`}>
-      <div className="message-bubble message-bubble-assistant">
-        <div className="flex items-center gap-4">
-          {/* AI-Inspired Animated Indicator */}
-          <div className="flex-shrink-0 flex items-center gap-2">
-            {displayStage === 'thinking' && (
-              <div className="flex items-center gap-2">
-                {/* Thinking dots with enhanced animation */}
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{
-                    background: accentHex,
-                    animation: 'ai-thinking-dots 1.4s ease-in-out infinite',
-                    animationDelay: '0s',
-                  }}
-                  aria-hidden="true"
-                />
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{
-                    background: accentHex,
-                    animation: 'ai-thinking-dots 1.4s ease-in-out infinite',
-                    animationDelay: '0.2s',
-                  }}
-                  aria-hidden="true"
-                />
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{
-                    background: accentHex,
-                    animation: 'ai-thinking-dots 1.4s ease-in-out infinite',
-                    animationDelay: '0.4s',
-                  }}
-                  aria-hidden="true"
-                />
+    <div className="flex justify-start animate-slide-in-left" role="status" aria-live="polite" aria-label={`AI is ${stage}: ${config.label}`}>
+      {/* Use key to force remount and reset progress when stage changes */}
+      <ProgressAnimator key={stage} stage={stage} onProgress={setProgress} />
+      <div className="message-bubble message-bubble-assistant min-w-[280px] sm:min-w-[320px]">
+        <div className="flex flex-col gap-3">
+          {/* Header with icon and label */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="animate-pulse" style={{ color: accentHex }} aria-hidden="true">
+                <IconComponent size={20} />
+              </span>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {config.label}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {config.description}
+                </span>
               </div>
-            )}
-            {displayStage === 'generating' && (
-              <div className="flex items-end gap-1.5 h-6">
-                {/* Generating bars with wave effect */}
-                {[0, 1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="w-1 rounded-full"
-                    style={{
-                      background: `linear-gradient(180deg, ${accentHex500} 0%, ${accentHex} 50%, ${accentHex700} 100%)`,
-                      animation: 'ai-generating-bars 0.8s ease-in-out infinite',
-                      animationDelay: `${i * 0.1}s`,
-                      height: '4px',
-                    }}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-            )}
-            {displayStage === 'finalizing' && (
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${accentHex}, ${accentHex700})`,
-                  animation: 'ai-check-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  boxShadow: `0 0 0 0 ${accentHex}33`,
-                }}
-                aria-hidden="true"
-              >
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeDasharray="50" strokeDashoffset="50" style={{ animation: 'ai-finalizing-checkmark 0.6s ease-out forwards' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
+            </div>
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 tabular-nums">
+              {Math.round(progress)}%
+            </span>
           </div>
 
-          {/* Stage Label and Description */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              {React.createElement(config.icon, {
-                className: 'w-5 h-5 transition-all duration-300',
-                style: { color: getAccentColor(accentColor, '600') },
-                'aria-hidden': 'true',
-              })}
-              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-wide">
-                {config.label}
-              </span>
-            </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-              {config.description}
-            </span>
+          {/* Progress bar */}
+          <div className="relative h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full transition-all duration-300 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: `linear-gradient(90deg, ${accentHex}, ${accentHex600})`,
+              }}
+            />
+            {/* Shimmer effect */}
+            <div
+              className="absolute inset-0 opacity-50"
+              style={{
+                background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)`,
+                animation: 'shimmer-advanced 1.5s infinite',
+                backgroundSize: '200% 100%',
+              }}
+            />
+          </div>
+
+          {/* Stage indicators */}
+          <div className="flex items-center justify-between text-xs">
+            {['thinking', 'generating', 'finalizing'].map((s, i) => (
+              <div
+                key={s}
+                className={`flex items-center gap-1.5 transition-all duration-300 ${
+                  stage === s
+                    ? 'text-slate-900 dark:text-slate-100 font-medium'
+                    : i < ['thinking', 'generating', 'finalizing'].indexOf(stage)
+                    ? 'text-slate-500 dark:text-slate-400'
+                    : 'text-slate-300 dark:text-slate-600'
+                }`}
+              >
+                <div
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    stage === s
+                      ? 'scale-125'
+                      : ''
+                  }`}
+                  style={{
+                    background: stage === s
+                      ? accentHex
+                      : i < ['thinking', 'generating', 'finalizing'].indexOf(stage)
+                      ? accentHex
+                      : undefined,
+                  }}
+                />
+                <span className="hidden sm:inline capitalize">{s}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

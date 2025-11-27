@@ -1,10 +1,47 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { FiX } from '../utils/icons'
 import { METADATA } from '../constants'
-import { SearchableSelect } from './SearchableSelect'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
 import type { ConversationMetadata } from '../types'
+
+// Simple select component to replace SearchableSelect
+interface SimpleSelectProps {
+  label: string
+  options: readonly { value: string; label: string }[]
+  value?: string
+  onChange: (value: string) => void
+  placeholder?: string
+  disabled?: boolean
+}
+
+const SimpleSelect: React.FC<SimpleSelectProps> = memo(({
+  label,
+  options,
+  value,
+  onChange,
+  placeholder = 'Select...',
+  disabled = false,
+}) => (
+  <div>
+    <label className="block text-sm font-bold text-slate-900 dark:text-slate-50 mb-2 uppercase tracking-wide">
+      {label}
+    </label>
+    <select
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-50"
+    >
+      <option value="">{placeholder}</option>
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  </div>
+))
 
 interface ConversationDetailsPanelProps {
   isOpen: boolean
@@ -89,35 +126,35 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
 
         <div className="p-6 space-y-4 pb-32">
           {/* All Fields - No Section Headers */}
-          <SearchableSelect
+          <SimpleSelect
             label="Broker"
             options={METADATA.BROKER_OPTIONS}
             value={formData.broker}
-            onChange={(value) => setFormData({ ...formData, broker: value })}
+            onChange={(value: string) => setFormData({ ...formData, broker: value })}
             placeholder="Select a broker..."
             disabled={isUpdating}
           />
-          <SearchableSelect
+          <SimpleSelect
             label="LOB"
             options={METADATA.LOB_OPTIONS}
             value={formData.lob}
-            onChange={(value) => setFormData({ ...formData, lob: value })}
+            onChange={(value: string) => setFormData({ ...formData, lob: value })}
             placeholder="Select LOB..."
             disabled={isUpdating}
           />
-          <SearchableSelect
+          <SimpleSelect
             label="Client Name"
             options={METADATA.CLIENT_OPTIONS}
             value={formData.client}
-            onChange={(value) => setFormData({ ...formData, client: value })}
+            onChange={(value: string) => setFormData({ ...formData, client: value })}
             placeholder="Select client..."
             disabled={isUpdating}
           />
-          <SearchableSelect
+          <SimpleSelect
             label="Risk County"
             options={METADATA.RISK_CATEGORY_OPTIONS}
             value={formData.riskCategory}
-            onChange={(value) => setFormData({ ...formData, riskCategory: value })}
+            onChange={(value: string) => setFormData({ ...formData, riskCategory: value })}
             placeholder="Select risk category..."
             disabled={isUpdating}
           />
