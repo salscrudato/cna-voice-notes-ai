@@ -219,5 +219,5 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
   )
 }
 
-export const ConversationDetailsPanel = ConversationDetailsPanelComponent
+export const ConversationDetailsPanel = memo(ConversationDetailsPanelComponent)
 

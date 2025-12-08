@@ -1,11 +1,8 @@
 /**
  * Core type definitions for the CNA Voice Notes AI application
- * Centralized type definitions for better maintainability and AI comprehension
  */
 
-// ============================================================================
-// CHAT & MESSAGING TYPES
-// ============================================================================
+// Chat & Messaging Types
 
 /** Message role in a conversation */
 export type MessageRole = 'user' | 'assistant'
@@ -76,9 +73,7 @@ export interface ChatMessageInput {
   content: string
 }
 
-// ============================================================================
-// CHAT PROVIDER TYPES
-// ============================================================================
+// Chat Provider Types
 
 /** Chat provider interface */
 export interface IChatProvider {
@@ -86,11 +81,7 @@ export interface IChatProvider {
   sendMessageStream?(messages: ChatMessageInput[], onChunk: (chunk: string) => void): Promise<string>
 }
 
-
-
-// ============================================================================
-// RESPONSE FORMATTING TYPES
-// ============================================================================
+// Response Formatting Types
 
 /** Response metadata for tracking and debugging */
 export interface ResponseMetadata {
@@ -159,20 +150,17 @@ export interface ResponseFormattingOptions {
   timeout?: number
 }
 
-
-// ============================================================================
-// CIRCUIT BREAKER TYPES
-// ============================================================================
+// Circuit Breaker Types
 
 /** Circuit breaker state */
 export type CircuitBreakerState = 'closed' | 'open' | 'half-open'
 
 /** Circuit breaker configuration */
 export interface CircuitBreakerConfig {
-  failureThreshold: number // number of failures before opening
-  successThreshold: number // number of successes to close from half-open
-  timeout: number // milliseconds before attempting half-open
-  monitoringWindow: number // milliseconds to track failures
+  failureThreshold: number
+  successThreshold: number
+  timeout: number
+  monitoringWindow: number
 }
 
 /** Circuit breaker status */
@@ -184,9 +172,7 @@ export interface CircuitBreakerStatus {
   nextAttemptTime?: Date
 }
 
-// ============================================================================
-// UPLOAD & FILE TYPES
-// ============================================================================
+// Upload & File Types
 
 /** Supported file types for upload */
 export type SupportedFileType = 'audio' | 'document'
@@ -236,9 +222,7 @@ export interface UploadedFileInput {
 export interface UploadProgress {
   fileId: string
   filename: string
-  progress: number // 0-100
+  progress: number
   status: 'pending' | 'uploading' | 'processing' | 'completed' | 'error'
   error?: string
 }
-
-

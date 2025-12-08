@@ -1,41 +1,20 @@
-/**
- * Application-wide constants
- * Centralized configuration for easy maintenance and AI agent comprehension
- */
-
-// ============================================================================
-// UI CONSTANTS
-// ============================================================================
+/** Application-wide constants */
 
 export const UI = {
-  // Chat input
   MAX_MESSAGE_LENGTH: 10000,
   MESSAGE_INPUT_MAX_HEIGHT: 120,
   MESSAGE_INPUT_ROWS: 1,
-
-  // Chat messages
   MAX_MESSAGES_TO_SEND_TO_API: 20,
   MESSAGE_SCROLL_BEHAVIOR: 'smooth' as const,
-
-  // Timeouts
   COPY_FEEDBACK_DURATION: 2000,
 } as const
 
-// ============================================================================
-// API CONSTANTS
-// ============================================================================
-
 export const API = {
-  // OpenAI / Chat Provider
   MODEL: 'gpt-4o-mini',
   TEMPERATURE: 0.7,
   MAX_TOKENS: 1000,
   REQUEST_TIMEOUT_MS: 30000,
 } as const
-
-// ============================================================================
-// METADATA CONSTANTS
-// ============================================================================
 
 export const METADATA = {
   // Brokers
@@ -117,10 +96,7 @@ export const METADATA = {
     { value: 'premium', label: 'Premium' },
   ] as const,
 
-  // Required fields for conversation creation
   REQUIRED_FIELDS: ['broker', 'lob', 'businessType'] as const,
-
-  // Optional fields for enrichment
   OPTIONAL_FIELDS: [
     'client',
     'accountNumber',
@@ -132,8 +108,4 @@ export const METADATA = {
     'tags',
   ] as const,
 } as const
-
-
-
-
 

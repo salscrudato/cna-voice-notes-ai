@@ -14,10 +14,6 @@ import type {
 } from '../../types/ai'
 import { logger } from '../../services/logger'
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
 /** Known section heading patterns */
 const SECTION_PATTERNS: Record<string, AiSectionType> = {
   summary: 'summary',
@@ -56,13 +52,7 @@ const JSON_FIELD_MAPPINGS: Record<string, AiSectionType> = {
   key_points: 'keyPoints',
 }
 
-// ============================================================================
-// MAIN NORMALIZATION FUNCTION
-// ============================================================================
-
-/**
- * Normalize any AI response format into a structured NormalizedAiResponse
- */
+/** Normalize any AI response format into a structured NormalizedAiResponse */
 export function normalizeResponse(rawResponse: string): NormalizedAiResponse {
   try {
     logger.debug('Normalizing AI response', { length: rawResponse.length })
@@ -104,13 +94,7 @@ export function normalizeResponse(rawResponse: string): NormalizedAiResponse {
   }
 }
 
-// ============================================================================
-// JSON PARSING
-// ============================================================================
-
-/**
- * Try to parse response as JSON
- */
+/** Try to parse response as JSON */
 function tryParseAsJson(rawResponse: string): NormalizedAiResponse | null {
   try {
     // Try direct JSON parse
@@ -225,14 +209,7 @@ function createSectionFromValue(type: AiSectionType, title: string, value: unkno
   }
 }
 
-// ============================================================================
-// MARKDOWN PARSING
-// ============================================================================
-
-/**
- * Structure raw unformatted content into sections
- * Detects patterns like "1. Item" or "**Bold**: content" and converts to markdown
- */
+/** Structure raw unformatted content into sections */
 function structureRawContent(content: string): AiSection[] {
   const sections: AiSection[] = []
   const lines = content.split('\n')
@@ -463,13 +440,7 @@ function parseMarkdownTable(lines: string[], startIndex: number): AiTable | null
   }
 }
 
-// ============================================================================
-// HELPER NORMALIZERS
-// ============================================================================
-
-/**
- * Normalize citations from various formats
- */
+/** Normalize citations from various formats */
 function normalizeCitations(value: unknown): AiCitation[] | undefined {
   if (!Array.isArray(value)) {
     return undefined
@@ -555,13 +526,7 @@ function formatTitle(title: string): string {
     .join(' ')
 }
 
-// ============================================================================
-// STREAMING SUPPORT
-// ============================================================================
-
-/**
- * Create a new streaming accumulator
- */
+/** Create a new streaming accumulator */
 export function createStreamingAccumulator(): StreamingAccumulator {
   return {
     buffer: '',
@@ -596,13 +561,7 @@ export function finalizeStreamingAccumulator(
   return normalizeResponse(accumulator.buffer)
 }
 
-// ============================================================================
-// ERROR HANDLING
-// ============================================================================
-
-/**
- * Create an error response
- */
+/** Create an error response */
 export function createErrorResponse(error: string | Error): NormalizedAiResponse {
   const errorMessage = typeof error === 'string' ? error : error.message
 

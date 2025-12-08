@@ -186,6 +186,6 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
 };
 
 
-export const ChatMessages = ChatMessagesComponent
+export const ChatMessages = memo(ChatMessagesComponent)
 
 

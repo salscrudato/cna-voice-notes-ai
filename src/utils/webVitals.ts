@@ -12,15 +12,6 @@ export interface WebVitalsMetric {
   navigationType: string
 }
 
-export interface WebVitalsReport {
-  lcp?: WebVitalsMetric
-  fid?: WebVitalsMetric
-  cls?: WebVitalsMetric
-  ttfb?: WebVitalsMetric
-  inp?: WebVitalsMetric
-  timestamp: number
-}
-
 // Thresholds for Core Web Vitals (in milliseconds or unitless)
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
@@ -161,27 +152,3 @@ export async function reportWebVitals(
     console.debug('Failed to report Web Vitals:', error)
   }
 }
-
-/**
- * Get current performance metrics
- */
-export function getPerformanceMetrics(): WebVitalsReport {
-  const report: WebVitalsReport = {
-    timestamp: Date.now(),
-  }
-
-  if (performance.timing) {
-    const timing = performance.timing
-    report.ttfb = {
-      name: 'TTFB',
-      value: timing.responseStart - timing.navigationStart,
-      rating: getRating('TTFB', timing.responseStart - timing.navigationStart),
-      delta: 0,
-      id: `ttfb-${Date.now()}`,
-      navigationType: performance.navigation?.type.toString() || 'navigate',
-    }
-  }
-
-  return report
-}
-

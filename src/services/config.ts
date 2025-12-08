@@ -46,15 +46,6 @@ export function getOpenAIApiKey(): string | undefined {
 }
 
 /**
- * Check if OpenAI API key is configured
- * @returns true if key is available, false otherwise
- * @deprecated Use isChatProviderConfigured() instead
- */
-export function isOpenAIConfigured(): boolean {
-  return !!import.meta.env.VITE_OPENAI_API_KEY
-}
-
-/**
  * Check if the chat provider is properly configured
  * Distinguishes between proxied and direct provider requirements
  * @returns true if the configured provider has all required settings

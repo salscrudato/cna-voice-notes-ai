@@ -16,13 +16,13 @@ const LandingFeaturesComponent: React.FC = () => {
       icon: IoChatbubblesOutline,
       title: 'Context-aware AI assistant',
       description:
-        'Ask questions about your calls and get answers backed by direct quotes from the conversation.',
+        'Ask questions about your calls and get intelligent answers—the AI automatically finds and references the relevant conversations.',
     },
     {
       icon: HiOutlineDocumentText,
-      title: 'Searchable conversation library',
+      title: 'Intelligent transcript retrieval',
       description:
-        'Find any call instantly by broker, account, topic, or date with full transcripts and audio.',
+        'No need to search or organize—just ask a question and the right transcripts are pulled automatically based on context.',
     },
     {
       icon: HiOutlineMicrophone,

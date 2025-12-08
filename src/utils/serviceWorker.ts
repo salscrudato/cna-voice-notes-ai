@@ -56,26 +56,7 @@ export async function registerServiceWorker(
   }
 }
 
-/**
- * Unregister service worker
- */
-export async function unregisterServiceWorker(): Promise<void> {
-  if (!('serviceWorker' in navigator)) return
-
-  try {
-    const registrations = await navigator.serviceWorker.getRegistrations()
-    for (const registration of registrations) {
-      await registration.unregister()
-    }
-    console.debug('Service Worker unregistered')
-  } catch (error) {
-    console.error('Failed to unregister Service Worker:', error)
-  }
-}
-
-/**
- * Check if service worker is active
- */
+/** Check if service worker is active */
 export function isServiceWorkerActive(): boolean {
   return (
     'serviceWorker' in navigator &&
@@ -83,24 +64,7 @@ export function isServiceWorkerActive(): boolean {
   )
 }
 
-/**
- * Clear all caches
- */
-export async function clearAllCaches(): Promise<void> {
-  if (!('caches' in window)) return
-
-  try {
-    const cacheNames = await caches.keys()
-    await Promise.all(cacheNames.map(name => caches.delete(name)))
-    console.debug('All caches cleared')
-  } catch (error) {
-    console.error('Failed to clear caches:', error)
-  }
-}
-
-/**
- * Get cache size
- */
+/** Get cache size */
 export async function getCacheSize(): Promise<number> {
   if (!('caches' in window)) return 0
 
@@ -126,4 +90,3 @@ export async function getCacheSize(): Promise<number> {
     return 0
   }
 }
-
