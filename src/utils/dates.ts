@@ -3,8 +3,6 @@
  * Provides consistent date operations across the application
  */
 
-import type { Conversation } from '../types'
-
 /**
  * Get the date group label for a date
  * Categorizes dates into groups like "Today", "Yesterday", "This Week", etc.
@@ -23,42 +21,3 @@ export function getDateGroupLabel(date: Date | number): string {
   if (daysDiff < 30) return 'This Month'
   return 'Older'
 }
-
-
-
-// ============================================================================
-// CONVERSATION GROUPING UTILITIES
-// ============================================================================
-
-export type ConversationGroup = 'Today' | 'Yesterday' | 'This Week' | 'This Month' | 'Older'
-export type GroupedConversations = Partial<Record<ConversationGroup, Conversation[]>>
-
-/**
- * Group conversations by date
- * @param conversations - Array of conversations to group
- * @returns Object with conversations grouped by date
- */
-export function groupConversationsByDate(conversations: Conversation[]): GroupedConversations {
-  const grouped: GroupedConversations = {}
-
-  for (const conversation of conversations) {
-    const group = getDateGroupLabel(conversation.updatedAt) as ConversationGroup
-    if (!grouped[group]) {
-      grouped[group] = []
-    }
-    grouped[group]!.push(conversation)
-  }
-
-  return grouped
-}
-
-/**
- * Get the order of groups for consistent display
- * @returns Array of group names in display order
- */
-export function getGroupOrder(): ConversationGroup[] {
-  return ['Today', 'Yesterday', 'This Week', 'This Month', 'Older']
-}
-
-
-

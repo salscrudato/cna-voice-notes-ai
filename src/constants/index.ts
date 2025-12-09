@@ -43,14 +43,6 @@ export const METADATA = {
     { value: 'umbrella', label: 'Umbrella' },
   ] as const,
 
-  // Business Types
-  BUSINESS_TYPE_OPTIONS: [
-    { value: 'new_business', label: 'New Business' },
-    { value: 'renewal', label: 'Renewal' },
-    { value: 'modification', label: 'Modification' },
-    { value: 'cancellation', label: 'Cancellation' },
-  ] as const,
-
   // Client Names
   CLIENT_OPTIONS: [
     { value: 'acme_corp', label: 'Acme Corporation' },
@@ -79,33 +71,5 @@ export const METADATA = {
     { value: 'education', label: 'Education' },
   ] as const,
 
-  // Underwriting Status
-  UNDERWRITING_STATUS_OPTIONS: [
-    { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'declined', label: 'Declined' },
-    { value: 'referred', label: 'Referred' },
-    { value: 'in_review', label: 'In Review' },
-  ] as const,
-
-  // Coverage Types
-  COVERAGE_TYPE_OPTIONS: [
-    { value: 'basic', label: 'Basic' },
-    { value: 'standard', label: 'Standard' },
-    { value: 'enhanced', label: 'Enhanced' },
-    { value: 'premium', label: 'Premium' },
-  ] as const,
-
-  REQUIRED_FIELDS: ['broker', 'lob', 'businessType'] as const,
-  OPTIONAL_FIELDS: [
-    'client',
-    'accountNumber',
-    'riskCategory',
-    'industry',
-    'coverageType',
-    'premium',
-    'underwritingStatus',
-    'tags',
-  ] as const,
 } as const
 

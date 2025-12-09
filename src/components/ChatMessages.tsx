@@ -175,7 +175,7 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
                 </div>
               </div>
             )}
-            <StreamingLoadingIndicator stage={streamingStage} isStreaming={true} />
+            <StreamingLoadingIndicator stage={streamingStage} />
           </>
         )}
 

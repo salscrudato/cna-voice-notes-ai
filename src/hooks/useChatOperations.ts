@@ -49,22 +49,6 @@ export const useChatOperations = ({
     }
   }, [setMessages, setApiError])
 
-  const handleNewConversation = useCallback(async () => {
-    try {
-      const title = `Chat ${new Date().toLocaleDateString()}`
-      logger.info('Creating new conversation', { title })
-      const conversationId = await chatService.createConversation(title)
-      setCurrentConversationId(conversationId)
-      setMessages([])
-      await loadConversations()
-      logger.info('New conversation created successfully', { conversationId })
-    } catch (error) {
-      logger.error('Failed to create conversation', error)
-      const errorMsg = error instanceof Error ? error.message : 'Failed to create conversation'
-      setApiError(`Error creating conversation: ${errorMsg}`)
-    }
-  }, [loadConversations, setCurrentConversationId, setMessages, setApiError])
-
   const handleSelectConversation = useCallback((conversationId: string) => {
     setCurrentConversationId(conversationId)
   }, [setCurrentConversationId])
@@ -104,7 +88,6 @@ export const useChatOperations = ({
   return {
     loadConversations,
     loadMessages,
-    handleNewConversation,
     handleSelectConversation,
     initializeChat,
   }

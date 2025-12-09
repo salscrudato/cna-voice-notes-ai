@@ -5,7 +5,6 @@ import { getAccentColor } from '../utils/accentColors'
 
 interface StreamingLoadingIndicatorProps {
   stage?: 'thinking' | 'generating' | 'finalizing'
-  isStreaming?: boolean
 }
 
 // Stage progress configuration
