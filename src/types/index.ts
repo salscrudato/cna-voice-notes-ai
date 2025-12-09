@@ -177,15 +177,6 @@ export interface CircuitBreakerStatus {
 /** Supported file types for upload */
 export type SupportedFileType = 'audio' | 'document'
 
-/** File type configuration */
-export interface FileTypeConfig {
-  type: SupportedFileType
-  mimeTypes: string[]
-  extensions: string[]
-  maxSize: number // in bytes
-  description: string
-}
-
 /** Uploaded file metadata */
 export interface UploadedFile {
   id: string

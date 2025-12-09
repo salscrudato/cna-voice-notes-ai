@@ -43,7 +43,6 @@ export const useChatState = () => {
     setMessages,
     setInputValue,
     setIsLoading,
-    setSidebarOpen,
     setApiError,
     setIsApiKeyMissing,
     // Helpers

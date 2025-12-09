@@ -33,7 +33,7 @@ const DEFAULT_FORMATTING_OPTIONS: ResponseFormattingOptions = {
  * Sanitize response content by removing potentially harmful content
  * Preserves code blocks and intentional formatting
  */
-export function sanitizeContent(content: string): string {
+function sanitizeContent(content: string): string {
   if (!content || typeof content !== 'string') {
     return ''
   }
@@ -108,7 +108,7 @@ export function validateResponse(content: unknown): ValidationResult {
 /**
  * Detect content type
  */
-export function detectContentType(content: string): 'text' | 'markdown' | 'json' | 'mixed' {
+function detectContentType(content: string): 'text' | 'markdown' | 'json' | 'mixed' {
   if (content.startsWith('{') || content.startsWith('[')) {
     try {
       JSON.parse(content)

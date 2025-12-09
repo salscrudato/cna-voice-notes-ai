@@ -10,7 +10,6 @@ import type {
   AiCitation,
   AiMetric,
   AiTable,
-  StreamingAccumulator,
 } from '../../types/ai'
 import { logger } from '../../services/logger'
 
@@ -524,41 +523,6 @@ function formatTitle(title: string): string {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
-}
-
-/** Create a new streaming accumulator */
-export function createStreamingAccumulator(): StreamingAccumulator {
-  return {
-    buffer: '',
-    complete: false,
-    chunkCount: 0,
-  }
-}
-
-/**
- * Add a chunk to the streaming accumulator
- */
-export function addStreamingChunk(
-  accumulator: StreamingAccumulator,
-  chunk: string
-): StreamingAccumulator {
-  const newBuffer = accumulator.buffer + chunk
-
-  return {
-    buffer: newBuffer,
-    partial: normalizeResponse(newBuffer),
-    complete: false,
-    chunkCount: accumulator.chunkCount + 1,
-  }
-}
-
-/**
- * Finalize the streaming accumulator
- */
-export function finalizeStreamingAccumulator(
-  accumulator: StreamingAccumulator
-): NormalizedAiResponse {
-  return normalizeResponse(accumulator.buffer)
 }
 
 /** Create an error response */

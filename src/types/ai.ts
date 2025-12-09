@@ -144,19 +144,3 @@ export interface NormalizedAiResponse {
   }
 }
 
-// ============================================================================
-// STREAMING TYPES
-// ============================================================================
-
-/** State for accumulating streaming response chunks */
-export interface StreamingAccumulator {
-  /** Accumulated text buffer */
-  buffer: string
-  /** Current partial normalization */
-  partial?: NormalizedAiResponse
-  /** Whether stream is complete */
-  complete: boolean
-  /** Number of chunks received */
-  chunkCount: number
-}
-
