@@ -58,7 +58,7 @@ const MessageItem = memo<MessageItemProps>(({ message: msg, isCopied, onCopy, on
           {msg.role === 'assistant' && (
             <button
               onClick={() => onCopy(msg.id, msg.content)}
-              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-3 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-125 hover:-translate-y-1 active:scale-95 active:translate-y-0 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-300/50 dark:border-slate-600/50 hover:border-slate-400/80 dark:hover:border-slate-500/80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+              className="opacity-0 group-hover:opacity-100 transition-all duration-300 p-3 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex-shrink-0 hover:scale-125 hover:-translate-y-1 active:scale-95 active:translate-y-0 shadow-sm hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-slate-900/50 border border-slate-300/50 dark:border-slate-600/50 hover:border-slate-400/80 dark:hover:border-slate-500/80 focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
               title="Copy message"
               aria-label="Copy message"
               type="button"
@@ -96,11 +96,41 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
 }) => {
   const { accentColor } = useTheme()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
 
+  // Check if user is near bottom of scroll container
+  const checkIfNearBottom = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return true
+    const threshold = 150 // pixels from bottom
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+    return isNearBottom
+  }, [])
+
+  // Update auto-scroll state on scroll
+  const handleScroll = useCallback(() => {
+    setShouldAutoScroll(checkIfNearBottom())
+  }, [checkIfNearBottom])
+
+  // Auto-scroll when new messages arrive (only if user is near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: UI.MESSAGE_SCROLL_BEHAVIOR })
-  }, [messages, isLoading, streamingContent])
+    if (shouldAutoScroll) {
+      messagesEndRef.current?.scrollIntoView({ behavior: UI.MESSAGE_SCROLL_BEHAVIOR })
+    }
+  }, [messages, isLoading, streamingContent, shouldAutoScroll])
+
+  // Always scroll to bottom when user sends a new message
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage.role === 'user') {
+        messagesEndRef.current?.scrollIntoView({ behavior: UI.MESSAGE_SCROLL_BEHAVIOR })
+        setShouldAutoScroll(true)
+      }
+    }
+  }, [messages])
 
   const handleCopyMessage = useCallback((messageId: string, content: string) => {
     navigator.clipboard.writeText(content).then(() => {
@@ -117,7 +147,13 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
   }, [onFollowUpClick])
 
   return (
-    <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-5 sm:space-y-7 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 transition-colors duration-300 flex flex-col items-center relative" role="main" aria-label="Chat messages">
+    <main
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-5 sm:space-y-7 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 transition-colors duration-300 flex flex-col items-center relative"
+      role="main"
+      aria-label="Chat messages"
+    >
       {/* Filter button - positioned on the right side, centered vertically */}
       {onEditMetadata && (
         <button
@@ -144,7 +180,7 @@ const ChatMessagesComponent: React.FC<ChatMessagesProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             }
-            title="Welcome to Marmalade"
+            title="Welcome to EVR"
             description="Made for Underwriters"
             suggestions={[
               "What were the key coverage requests from this call?",

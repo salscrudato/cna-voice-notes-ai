@@ -31,7 +31,7 @@ const SimpleSelect: React.FC<SimpleSelectProps> = memo(({
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-50"
+      className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600 disabled:opacity-50"
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => (
@@ -51,6 +51,8 @@ interface ConversationDetailsPanelProps {
   isUpdating?: boolean
 }
 
+type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error'
+
 const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps> = ({
   isOpen,
   onClose,
@@ -61,11 +63,16 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
   const { accentColor } = useTheme()
   const [formData, setFormData] = useState<ConversationMetadata>(metadata)
   const [newTag, setNewTag] = useState('')
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     setFormData(metadata)
   }, [metadata])
+
+  // Check if form has unsaved changes
+  const isDirty = JSON.stringify(formData) !== JSON.stringify(metadata)
 
   // Auto-save with debounce
   useEffect(() => {
@@ -73,18 +80,32 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
       clearTimeout(saveTimeoutRef.current)
     }
 
-    saveTimeoutRef.current = setTimeout(() => {
-      if (JSON.stringify(formData) !== JSON.stringify(metadata)) {
-        onUpdate(formData)
-      }
-    }, 1000) // Auto-save after 1 second of inactivity
+    if (isDirty) {
+      setSaveStatus('pending')
+      saveTimeoutRef.current = setTimeout(async () => {
+        setSaveStatus('saving')
+        try {
+          await onUpdate(formData)
+          setSaveStatus('saved')
+          // Clear saved status after 2 seconds
+          statusTimeoutRef.current = setTimeout(() => {
+            setSaveStatus('idle')
+          }, 2000)
+        } catch {
+          setSaveStatus('error')
+        }
+      }, 1000) // Auto-save after 1 second of inactivity
+    }
 
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current)
       }
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current)
+      }
     }
-  }, [formData, metadata, onUpdate])
+  }, [formData, isDirty, onUpdate])
 
   const handleAddTag = useCallback(() => {
     if (newTag.trim()) {
@@ -110,7 +131,28 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
     <>
       <div className={`fixed top-0 right-0 h-screen w-full sm:w-96 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 shadow-xl border-l border-slate-200 dark:border-slate-800 z-40 transform transition-transform duration-300 ease-in-out overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="sticky top-0 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 z-10">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-wider">FILTER</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-wider">FILTER</h2>
+            {/* Save status indicator */}
+            {saveStatus === 'pending' && (
+              <span className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">Unsaved</span>
+            )}
+            {saveStatus === 'saving' && (
+              <span className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                Saving...
+              </span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="text-xs text-green-500 dark:text-green-400 flex items-center gap-1 animate-fade-in">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                Saved
+              </span>
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-xs text-red-500 dark:text-red-400">Save failed</span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-400 hover:shadow-sm dark:hover:shadow-md hover:scale-110 active:scale-95 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
@@ -168,8 +210,13 @@ const ConversationDetailsPanelComponent: React.FC<ConversationDetailsPanelProps>
                 placeholder="Add tag..."
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
-                className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleAddTag()
+                  }
+                }}
+                className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                 disabled={isUpdating}
               />
               <button

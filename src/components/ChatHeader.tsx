@@ -1,4 +1,5 @@
 import React, { useCallback, memo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FiMenu, FiX, FiMessageCircle, FiMic, FiPlus } from '../utils/icons'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
@@ -19,6 +20,7 @@ const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({
   linkedVoiceNoteName,
   onNewConversation,
 }) => {
+  const navigate = useNavigate()
   const { accentColor } = useTheme()
 
   const handleNewChat = useCallback(() => {
@@ -29,9 +31,29 @@ const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({
       {/* Header row with menu and title */}
       <div className="flex items-center justify-between">
 	        <div className="flex items-center gap-2">
+	          {/* EVR Logo - routes to home */}
+	          <button
+	            onClick={() => navigate('/')}
+	            className="flex items-center gap-2 group hover:scale-105 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 rounded-lg px-2 py-1 active:scale-95"
+	            style={{
+	              '--tw-ring-color': getAccentColor(accentColor, '500')
+	            } as React.CSSProperties}
+	            aria-label="EVR home"
+	            type="button"
+	          >
+	            <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200 border group-hover:scale-110"
+	              style={{
+	                background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+	                borderColor: `${getAccentColor(accentColor, '500')}4d`
+	              }}
+	            >
+	              <span className="text-white font-bold text-xs">E</span>
+	            </div>
+	            <span className="hidden sm:inline font-bold text-sm text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR</span>
+	          </button>
 	          <button
 	            onClick={onToggleSidebar}
-	            className="btn-icon hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md dark:hover:shadow-lg hover:scale-110 hover:-translate-y-0.5 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+	            className="btn-icon hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 hover:shadow-md dark:hover:shadow-lg hover:scale-110 hover:-translate-y-0.5 active:scale-95 focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
             aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={sidebarOpen}
             aria-controls="chat-sidebar"
@@ -40,20 +62,37 @@ const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({
             {sidebarOpen ? <FiX size={20} aria-hidden="true" /> : <FiMenu size={20} aria-hidden="true" />}
           </button>
           {onNewConversation && (
-            <button
-              onClick={handleNewChat}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-2xl active:scale-95 font-medium text-xs hover:-translate-y-1 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
-              style={{
-                background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
-                '--tw-ring-color': getAccentColor(accentColor, '500')
-              } as React.CSSProperties}
-              aria-label="Start a new chat"
-              title="New Chat"
-              type="button"
-            >
-              <FiPlus size={16} aria-hidden="true" className="group-hover:rotate-90 transition-transform duration-300" />
-              <span>New Chat</span>
-            </button>
+            <>
+              {/* Mobile: icon-only button */}
+              <button
+                onClick={handleNewChat}
+                className="sm:hidden flex items-center justify-center w-10 h-10 rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+                style={{
+                  background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+                  '--tw-ring-color': getAccentColor(accentColor, '500')
+                } as React.CSSProperties}
+                aria-label="Start a new chat"
+                title="New Chat"
+                type="button"
+              >
+                <FiPlus size={18} aria-hidden="true" />
+              </button>
+              {/* Desktop: full button with text */}
+              <button
+                onClick={handleNewChat}
+                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-all duration-300 shadow-md hover:shadow-2xl active:scale-95 font-medium text-xs hover:-translate-y-1 hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
+                style={{
+                  background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
+                  '--tw-ring-color': getAccentColor(accentColor, '500')
+                } as React.CSSProperties}
+                aria-label="Start a new chat"
+                title="New Chat"
+                type="button"
+              >
+                <FiPlus size={16} aria-hidden="true" className="group-hover:rotate-90 transition-transform duration-300" />
+                <span>New Chat</span>
+              </button>
+            </>
           )}
         </div>
 
@@ -66,7 +105,7 @@ const ChatHeaderComponent: React.FC<ChatHeaderProps> = ({
           {currentConversationTitle && (
             <>
               <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">/</span>
-              <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate hidden sm:inline max-w-xs hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 hover:scale-110 hover:-translate-y-1 cursor-pointer" title={currentConversationTitle}>
+              <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 truncate hidden sm:inline max-w-xs hover:text-accent-600 dark:hover:text-accent-400 transition-all duration-300 hover:scale-110 hover:-translate-y-1 cursor-pointer" title={currentConversationTitle}>
                 {currentConversationTitle}
               </span>
             </>

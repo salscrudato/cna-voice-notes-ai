@@ -1,6 +1,5 @@
 import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { HiOutlineMicrophone } from '../../utils/icons'
 import { ThemeSelector } from '../ThemeSelector'
 import { useTheme } from '../../hooks/useTheme'
 import { getAccentColor } from '../../utils/accentColors'
@@ -32,9 +31,9 @@ const LandingHeaderComponent: React.FC = () => {
                 borderColor: `${getAccentColor(accentColor, '500')}4d`
               }}
             >
-              <HiOutlineMicrophone className="w-5 h-5 text-white" aria-hidden="true" />
+              <span className="text-white font-bold text-sm">E</span>
             </div>
-            <span className="font-bold text-base text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR Chat</span>
+            <span className="font-bold text-base text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR</span>
           </button>
 
           {/* Theme Selector */}

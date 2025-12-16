@@ -3,7 +3,7 @@
  * Implements cache-first strategy for assets and network-first for API calls
  */
 
-const CACHE_NAME = 'marmalade-v1'
+const CACHE_NAME = 'evr-v1'
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

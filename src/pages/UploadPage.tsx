@@ -11,6 +11,7 @@ import { FileList } from '../components/FileList'
 import { useUploadedFiles } from '../hooks/useUploadedFiles'
 import { useToast } from '../hooks/useToast'
 import { useTheme } from '../hooks/useTheme'
+import { useAuth } from '../hooks/useAuth'
 import { getAccentColor } from '../utils/accentColors'
 import type { UploadedFile } from '../types'
 
@@ -51,12 +52,12 @@ const TagInput: React.FC<TagInputProps> = memo(({ tags, onTagsChange }) => {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Add a tag..."
-          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
         />
         <button
           onClick={handleAddTag}
           type="button"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white rounded-lg text-sm font-medium transition-colors"
         >
           Add
         </button>
@@ -65,13 +66,13 @@ const TagInput: React.FC<TagInputProps> = memo(({ tags, onTagsChange }) => {
         {tags.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+            className="inline-flex items-center gap-1 px-3 py-1 bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300 rounded-full text-sm"
           >
             {tag}
             <button
               onClick={() => handleRemoveTag(tag)}
               type="button"
-              className="hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+              className="hover:text-accent-900 dark:hover:text-accent-100 transition-colors"
             >
               <FiX size={14} />
             </button>
@@ -102,6 +103,7 @@ const UploadPageComponent: React.FC = () => {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const { accentColor } = useTheme()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const { files, isLoading, error, uploadProgress, loadFiles, uploadFile, updateFileTags, deleteFile, clearError } = useUploadedFiles()
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null)
   const [editingTags, setEditingTags] = useState<string[]>([])
@@ -109,21 +111,34 @@ const UploadPageComponent: React.FC = () => {
 
   // Load user files on mount
   useEffect(() => {
-    const userId = 'current-user' // TODO: Get from auth context
-    loadFiles(userId)
-  }, [loadFiles])
+    if (user?.id) {
+      loadFiles(user.id)
+    }
+  }, [loadFiles, user?.id])
 
   const handleFilesSelected = async (selectedFiles: File[]) => {
-    const userId = 'current-user' // TODO: Get from auth context
+    if (!user?.id) {
+      showToast('Please sign in to upload files', 'error')
+      return
+    }
     for (const file of selectedFiles) {
       const fileType = file.type.startsWith('audio/') ? 'audio' : 'document'
-      const result = await uploadFile(file, userId, fileType, [])
+      const result = await uploadFile(file, user.id, fileType, [])
       if (result) {
         showToast(`${file.name} uploaded successfully`, 'success')
       } else {
         showToast(`Failed to upload ${file.name}`, 'error')
       }
     }
+  }
+
+  // Show loading state while auth is initializing
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 flex items-center justify-center">
+        <div className="animate-pulse text-slate-500 dark:text-slate-400">Loading...</div>
+      </div>
+    )
   }
 
   const handleEditFile = (file: UploadedFile) => {
@@ -209,20 +224,20 @@ const UploadPageComponent: React.FC = () => {
 
           {/* Upload Progress */}
           {uploadProgress && (
-            <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div className="p-4 bg-accent-50 dark:bg-accent-950/30 border border-accent-200 dark:border-accent-800 rounded-lg animate-fade-in shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-center gap-3">
                 {uploadProgress.status === 'completed' ? (
                   <FiCheckCircle size={20} className="text-green-600 dark:text-green-400 flex-shrink-0 animate-bounce" />
                 ) : (
-                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
                 )}
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  <p className="text-sm font-medium text-accent-900 dark:text-accent-100">
                     {uploadProgress.filename}
                   </p>
-                  <div className="w-full bg-blue-200 dark:bg-blue-900 rounded-full h-2 mt-2 shadow-sm">
+                  <div className="w-full bg-accent-200 dark:bg-accent-900 rounded-full h-2 mt-2 shadow-sm">
                     <div
-                      className="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-400 dark:to-blue-300 h-2 rounded-full transition-all duration-300 shadow-md"
+                      className="bg-gradient-to-r from-accent-600 to-accent-500 dark:from-accent-400 dark:to-accent-300 h-2 rounded-full transition-all duration-300 shadow-md"
                       style={{ width: `${uploadProgress.progress}%` }}
                     />
                   </div>
@@ -292,7 +307,7 @@ const UploadPageComponent: React.FC = () => {
                   </button>
                   <button
                     onClick={handleSaveTags}
-                    className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    className="flex-1 px-4 py-2 text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
                     type="button"
                   >
                     Save

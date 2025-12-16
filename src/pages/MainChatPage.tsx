@@ -312,8 +312,45 @@ const MainChatPage: React.FC = () => {
     }
   }, [loadConversations, setApiError, clearError])
 
+  // Handle Escape key to close sidebar and details panel
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showDetailsPanel) {
+          setShowDetailsPanel(false)
+        } else if (sidebarOpen) {
+          toggleSidebar()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showDetailsPanel, sidebarOpen, toggleSidebar])
+
+  // Lock body scroll when sidebar is open on mobile
+  useEffect(() => {
+    const isMobile = window.innerWidth < 640 // sm breakpoint
+    if (sidebarOpen && isMobile) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [sidebarOpen])
+
   return (
     <div className="flex h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 dark:bg-black/50 z-30 sm:hidden transition-opacity duration-300"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        />
+      )}
+
       <ChatSidebar
         isOpen={sidebarOpen}
         conversations={conversations}

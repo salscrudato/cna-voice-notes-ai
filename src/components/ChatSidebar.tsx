@@ -1,7 +1,7 @@
 import React, { useMemo, useState, memo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import type { Conversation } from '../types'
-import { FiHome, FiSearch, FiX, FiHelpCircle, FiUpload } from '../utils/icons'
+import { FiHome, FiSearch, FiX } from '../utils/icons'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
 import { ConversationItem } from './ConversationItem'
@@ -174,88 +174,6 @@ const ChatSidebarComponent: React.FC<ChatSidebarProps> = ({
           <FiHome size={18} className="group-hover:scale-125 group-hover:-translate-y-0.5 transition-all duration-300 flex-shrink-0" aria-hidden="true" />
           <span>Home</span>
           {isOnPage('/') && (
-            <div className="ml-auto flex items-center gap-2 animate-fade-in">
-              <div
-                className="w-2 h-2 rounded-full animate-pulse shadow-lg"
-                style={{
-                  backgroundColor: getAccentColor(accentColor, '600'),
-                  boxShadow: `0 0 8px ${getAccentColor(accentColor, '500')}80`
-                }}
-                aria-hidden="true"
-              />
-              <div
-                className="w-1.5 h-1.5 rounded-full shadow-md"
-                style={{
-                  backgroundColor: getAccentColor(accentColor, '600'),
-                  boxShadow: `0 0 6px ${getAccentColor(accentColor, '500')}60`
-                }}
-                aria-hidden="true"
-              />
-            </div>
-          )}
-        </button>
-
-        <button
-          onClick={() => navigate('/upload')}
-		          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 text-sm group focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 border hover:scale-[1.02] hover:-translate-y-0.5 ${
-		            isOnPage('/upload')
-		              ? 'bg-white dark:bg-slate-800 font-semibold shadow-md hover:shadow-lg'
-		              : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 border-slate-200/60 dark:border-slate-700/60 hover:shadow-md dark:hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600'
-		          }`}
-          style={isOnPage('/upload') ? {
-            color: getAccentColor(accentColor, '700'),
-            borderColor: getAccentColor(accentColor, '300'),
-            '--tw-ring-color': getAccentColor(accentColor, '500')
-          } as React.CSSProperties : {
-            '--tw-ring-color': getAccentColor(accentColor, '500')
-          } as React.CSSProperties}
-          aria-label="Go to upload page"
-          aria-current={isOnPage('/upload') ? 'page' : undefined}
-        >
-          <FiUpload size={18} className="group-hover:scale-125 group-hover:-translate-y-0.5 transition-all duration-300 flex-shrink-0" aria-hidden="true" />
-          <span>Upload</span>
-          {isOnPage('/upload') && (
-            <div className="ml-auto flex items-center gap-2 animate-fade-in">
-              <div
-                className="w-2 h-2 rounded-full animate-pulse shadow-lg"
-                style={{
-                  backgroundColor: getAccentColor(accentColor, '600'),
-                  boxShadow: `0 0 8px ${getAccentColor(accentColor, '500')}80`
-                }}
-                aria-hidden="true"
-              />
-              <div
-                className="w-1.5 h-1.5 rounded-full shadow-md"
-                style={{
-                  backgroundColor: getAccentColor(accentColor, '600'),
-                  boxShadow: `0 0 6px ${getAccentColor(accentColor, '500')}60`
-                }}
-                aria-hidden="true"
-              />
-            </div>
-          )}
-        </button>
-
-        <button
-          onClick={() => navigate('/support')}
-	          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 text-sm group focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 border hover:scale-[1.02] hover:-translate-y-0.5 ${
-	            isOnPage('/support')
-	              ? 'bg-white dark:bg-slate-800 font-semibold shadow-md hover:shadow-lg'
-	              : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200 border-slate-200/60 dark:border-slate-700/60 hover:shadow-md dark:hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600'
-	          }`}
-          style={isOnPage('/support') ? {
-            color: getAccentColor(accentColor, '700'),
-            borderColor: getAccentColor(accentColor, '300'),
-            '--tw-ring-color': getAccentColor(accentColor, '500')
-          } as React.CSSProperties : {
-            '--tw-ring-color': getAccentColor(accentColor, '500')
-          } as React.CSSProperties}
-          aria-label="Go to support page"
-          aria-current={isOnPage('/support') ? 'page' : undefined}
-        >
-          <FiHelpCircle size={18} className="group-hover:scale-125 group-hover:-translate-y-0.5 transition-all duration-300 flex-shrink-0" aria-hidden="true" />
-          <span>Get Support</span>
-          {isOnPage('/support') && (
             <div className="ml-auto flex items-center gap-2 animate-fade-in">
               <div
                 className="w-2 h-2 rounded-full animate-pulse shadow-lg"

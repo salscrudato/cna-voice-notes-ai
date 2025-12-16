@@ -41,6 +41,7 @@ export {
   FiInfo,
   FiLoader,
   FiSend,
+  FiSquare,
 } from 'react-icons/fi'
 
 // Ionicons (io5)

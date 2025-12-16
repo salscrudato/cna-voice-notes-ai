@@ -50,7 +50,7 @@ const LandingHeroComponent: React.FC = () => {
             {/* Headline */}
             <div className="space-y-3">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
-                EVR turns your voice notes into
+                Marmalade turns your voice notes into
                 <span
                   className="block font-bold mt-2"
                   style={{

@@ -69,14 +69,15 @@
     @apply transition-all duration-200 ease-out;
   }
 
-  /* Enhanced focus ring for keyboard navigation */
+  /* Enhanced focus ring for keyboard navigation - uses accent color CSS variable */
   *:focus-visible {
     @apply outline-none ring-2 ring-offset-2 ring-offset-white transition-all duration-200;
-    --tw-ring-color: rgb(var(--accent-500));
+    --tw-ring-color: var(--accent-500);
   }
 
   .dark *:focus-visible {
     @apply ring-offset-slate-950;
+    --tw-ring-color: var(--accent-400);
   }
 
   /* Mobile input text size to prevent zoom */
@@ -113,18 +114,18 @@
     @apply bg-transparent px-0 py-0;
   }
 
-  /* Link styling */
+  /* Link styling - uses accent color */
   a {
-    @apply text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200;
+    @apply text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors duration-200;
   }
 
-  /* Selection styling */
+  /* Selection styling - uses accent color */
   ::selection {
-    @apply bg-blue-500 text-white;
+    @apply bg-accent-500 text-white;
   }
 
   ::-moz-selection {
-    @apply bg-blue-500 text-white;
+    @apply bg-accent-500 text-white;
   }
 }
 

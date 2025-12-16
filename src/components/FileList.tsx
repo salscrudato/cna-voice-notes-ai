@@ -47,7 +47,7 @@ const FileListComponent: React.FC<FileListProps> = ({
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               {file.fileType === 'audio' ? (
-                <FiMusic size={20} className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300" />
+                <FiMusic size={20} className="text-accent-600 dark:text-accent-400 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300" />
               ) : (
                 <FiFile size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300" />
               )}
@@ -63,7 +63,7 @@ const FileListComponent: React.FC<FileListProps> = ({
                     {file.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/60 transition-all duration-300 hover:shadow-sm hover:scale-105"
+                        className="inline-block px-2 py-1 bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300 rounded text-xs font-medium hover:bg-accent-200 dark:hover:bg-accent-900/60 transition-all duration-300 hover:shadow-sm hover:scale-105"
                       >
                         {tag}
                       </span>

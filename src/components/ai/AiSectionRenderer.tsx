@@ -135,7 +135,7 @@ const MarkdownContentComponent: React.FC<MarkdownContentProps> = ({ content }) =
   const memoizedComponents = useMemo(() => markdownComponents, [])
 
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none prose-slate prose-compact">
+    <div className="max-w-none text-sm text-slate-700 dark:text-slate-300 leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&>p]:my-2 [&>ul]:my-2 [&>ol]:my-2 [&>blockquote]:my-3 [&>pre]:my-3">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={memoizedComponents}>
         {content}
       </ReactMarkdown>

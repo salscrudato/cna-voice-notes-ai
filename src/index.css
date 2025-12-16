@@ -8,25 +8,39 @@
 /* Define dark mode variant for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Accent color definitions */
+/* Accent color definitions - CSS custom properties for dynamic accent colors */
 @layer base {
   :root {
     color-scheme: light;
-    /* Default accent color - Red */
-    --accent-50: #fef2f2;
-    --accent-100: #fee2e2;
-    --accent-200: #fecaca;
-    --accent-300: #fca5a5;
-    --accent-400: #f87171;
-    --accent-500: #ef4444;
-    --accent-600: #dc2626;
-    --accent-700: #b91c1c;
-    --accent-800: #991b1b;
-    --accent-900: #7f1d1d;
+    /* Default accent color - Blue (consistent with app default) */
+    --accent-50: #eff6ff;
+    --accent-100: #dbeafe;
+    --accent-200: #bfdbfe;
+    --accent-300: #93c5fd;
+    --accent-400: #60a5fa;
+    --accent-500: #3b82f6;
+    --accent-600: #2563eb;
+    --accent-700: #1d4ed8;
+    --accent-800: #1e40af;
+    --accent-900: #1e3a8a;
   }
 
   :root.dark {
     color-scheme: dark;
+  }
+
+  /* Blue Accent Color (explicit - matches default) */
+  :root.accent-blue {
+    --accent-50: #eff6ff;
+    --accent-100: #dbeafe;
+    --accent-200: #bfdbfe;
+    --accent-300: #93c5fd;
+    --accent-400: #60a5fa;
+    --accent-500: #3b82f6;
+    --accent-600: #2563eb;
+    --accent-700: #1d4ed8;
+    --accent-800: #1e40af;
+    --accent-900: #1e3a8a;
   }
 
   /* Emerald Accent Color */
@@ -98,5 +112,20 @@
     --accent-800: #1e293b;
     --accent-900: #0f172a;
   }
+}
+
+/* Tailwind v4 theme configuration - maps CSS variables to utility classes */
+@theme {
+  /* Accent color utilities - text-accent-*, bg-accent-*, border-accent-* */
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
+  --color-accent-800: var(--accent-800);
+  --color-accent-900: var(--accent-900);
 }
 

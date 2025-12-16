@@ -1,7 +1,6 @@
 import React, { memo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiArrowLeft, FiPlus, FiCheck, FiTrash2, FiEdit2 } from '../utils/icons'
-import { HiOutlineDocumentText } from '../utils/icons'
 import { ThemeSelector } from '../components/ThemeSelector'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
@@ -72,13 +71,18 @@ const ReportingPageComponent: React.FC = () => {
           <div className="flex items-center justify-between h-16 sm:h-20">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-3 group hover:scale-105 transition-all duration-200 rounded-lg px-3 py-2"
+              className="flex items-center gap-3 group hover:scale-105 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 rounded-lg px-3 py-2 active:scale-95"
+              style={{
+                '--tw-ring-color': getAccentColor(accentColor, '500')
+              } as React.CSSProperties}
+              aria-label="EVR home"
+              type="button"
             >
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg border"
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg border group-hover:shadow-xl group-hover:scale-110 transition-all duration-200"
                 style={{ background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`, borderColor: `${getAccentColor(accentColor, '500')}4d` }}>
-                <HiOutlineDocumentText className="w-5 h-5 text-white" />
+                <span className="text-white font-bold text-sm">E</span>
               </div>
-              <span className="font-bold text-base text-slate-900 dark:text-slate-50">EVR Reporting</span>
+              <span className="font-bold text-base text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR</span>
             </button>
             <ThemeSelector />
           </div>
@@ -169,7 +173,7 @@ const ReportingPageComponent: React.FC = () => {
 
       <footer className="border-t border-slate-200/50 dark:border-slate-700/50 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">© {new Date().getFullYear()} EVR. AI-powered insights for your conversations.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">© {new Date().getFullYear()} Marmalade. AI-powered insights for your conversations.</p>
         </div>
       </footer>
     </div>

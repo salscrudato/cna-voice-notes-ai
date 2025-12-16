@@ -87,7 +87,7 @@ const FileUploadZoneComponent: React.FC<FileUploadZoneProps> = ({
       onDrop={handleDrop}
       className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 transition-all duration-300 shadow-sm hover:shadow-md ${
         isDragging
-          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-lg'
+          ? 'border-accent-500 bg-accent-50 dark:bg-accent-950/30 shadow-lg'
           : 'border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md'
       } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
     >
@@ -116,7 +116,7 @@ const FileUploadZoneComponent: React.FC<FileUploadZoneProps> = ({
         <FiUploadCloud
           size={40}
           className={`transition-all duration-300 ${
-            isDragging ? 'text-blue-500 scale-125 -translate-y-2' : 'text-slate-400 dark:text-slate-500'
+            isDragging ? 'text-accent-500 scale-125 -translate-y-2' : 'text-slate-400 dark:text-slate-500'
           }`}
           aria-hidden="true"
         />

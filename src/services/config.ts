@@ -62,24 +62,48 @@ export function isChatProviderConfigured(): boolean {
 }
 
 /**
+ * Determine the default chat provider based on environment
+ * - Production: defaults to 'proxied' for security
+ * - Development: defaults to 'openai-direct' for convenience
+ */
+function getDefaultProvider(): ChatProvider {
+  const isProduction = import.meta.env.MODE === 'production'
+  return isProduction ? 'proxied' : 'openai-direct'
+}
+
+/**
  * Get the chat provider configuration
  * @returns Chat provider configuration based on environment variables
  */
 export function getChatProviderConfig(): ChatProviderConfig {
-  const provider = (import.meta.env.VITE_CHAT_PROVIDER || 'openai-direct') as ChatProvider
+  const explicitProvider = import.meta.env.VITE_CHAT_PROVIDER as ChatProvider | undefined
+  const defaultProvider = getDefaultProvider()
+  const provider = explicitProvider || defaultProvider
   const proxyUrl = import.meta.env.VITE_CHAT_PROXY_URL
   const openaiApiKey = getOpenAIApiKey()
+  const isProduction = import.meta.env.MODE === 'production'
 
   // Validate configuration
   if (provider === 'proxied' && !proxyUrl) {
     logger.error('Proxied chat provider selected but VITE_CHAT_PROXY_URL is not configured')
   }
 
-  if (provider === 'openai-direct' && !openaiApiKey) {
-    logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured')
+  if (provider === 'openai-direct') {
+    if (isProduction && !explicitProvider) {
+      logger.warn('OpenAI direct provider is not recommended for production. Consider using proxied mode.')
+    }
+    if (!openaiApiKey) {
+      logger.warn('OpenAI direct provider selected but VITE_OPENAI_API_KEY is not configured')
+    }
   }
 
-  logger.info('Chat provider configured', { provider, hasProxyUrl: !!proxyUrl, hasApiKey: !!openaiApiKey })
+  logger.info('Chat provider configured', {
+    provider,
+    isExplicit: !!explicitProvider,
+    isProduction,
+    hasProxyUrl: !!proxyUrl,
+    hasApiKey: !!openaiApiKey
+  })
 
   return {
     provider,

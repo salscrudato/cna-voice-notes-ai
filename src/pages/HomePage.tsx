@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowRight, FiMessageCircle } from '../utils/icons'
+import { FiArrowRight, FiMessageCircle, FiHelpCircle } from '../utils/icons'
 import { HiOutlineSparkles, HiOutlineDocumentText } from '../utils/icons'
 import { ThemeSelector } from '../components/ThemeSelector'
 import { useTheme } from '../hooks/useTheme'
@@ -14,6 +14,7 @@ interface ProductCard {
   icon: React.ComponentType<{ className?: string }>
   route: string
   gradient: { from: string; to: string }
+  disabled?: boolean
 }
 
 const HomePageComponent: React.FC = () => {
@@ -37,7 +38,8 @@ const HomePageComponent: React.FC = () => {
       description: 'Discover patterns and trends across all your conversations. Visualize key metrics and uncover hidden insights.',
       icon: HiOutlineSparkles,
       route: '/insights',
-      gradient: { from: '400', to: '600' }
+      gradient: { from: '400', to: '600' },
+      disabled: true
     },
     {
       id: 'reporting',
@@ -47,6 +49,15 @@ const HomePageComponent: React.FC = () => {
       icon: HiOutlineDocumentText,
       route: '/reporting',
       gradient: { from: '600', to: '800' }
+    },
+    {
+      id: 'support',
+      title: 'Get Support',
+      subtitle: 'Help & Resources',
+      description: 'Find answers to your questions and get help with EVR. Access our knowledge base and support resources.',
+      icon: FiHelpCircle,
+      route: '/support',
+      gradient: { from: '500', to: '600' }
     }
   ]
 
@@ -56,9 +67,17 @@ const HomePageComponent: React.FC = () => {
       <header className="sticky top-0 z-40 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 shadow-sm dark:shadow-md backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
-            <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-3 group hover:scale-105 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 rounded-lg px-3 py-2 active:scale-95"
+              style={{
+                '--tw-ring-color': getAccentColor(accentColor, '500')
+              } as React.CSSProperties}
+              aria-label="EVR home"
+              type="button"
+            >
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg border"
+                className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg border group-hover:shadow-xl group-hover:scale-110 transition-all duration-200"
                 style={{
                   background: `linear-gradient(135deg, ${getAccentColor(accentColor, '600')}, ${getAccentColor(accentColor, '700')})`,
                   borderColor: `${getAccentColor(accentColor, '500')}4d`
@@ -66,8 +85,8 @@ const HomePageComponent: React.FC = () => {
               >
                 <span className="text-white font-bold text-lg">E</span>
               </div>
-              <span className="font-bold text-xl text-slate-900 dark:text-slate-50">EVR</span>
-            </div>
+              <span className="font-bold text-xl text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR</span>
+            </button>
             <ThemeSelector />
           </div>
         </div>
@@ -119,23 +138,39 @@ const HomePageComponent: React.FC = () => {
                 return (
                   <button
                     key={product.id}
-                    onClick={() => navigate(product.route)}
-                    className="group relative rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 text-left overflow-hidden hover:-translate-y-2 hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-offset-2"
+                    onClick={() => !product.disabled && navigate(product.route)}
+                    disabled={product.disabled}
+                    className={`group relative rounded-2xl border bg-white dark:bg-slate-800 shadow-lg transition-all duration-300 p-6 sm:p-8 text-left overflow-hidden focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                      product.disabled
+                        ? 'border-slate-200/50 dark:border-slate-700/50 opacity-60 cursor-not-allowed'
+                        : 'border-slate-200 dark:border-slate-700 hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02]'
+                    }`}
                     style={{
                       '--tw-ring-color': getAccentColor(accentColor, '500')
                     } as React.CSSProperties}
                   >
+                    {/* Coming Soon Badge */}
+                    {product.disabled && (
+                      <div className="absolute top-4 right-4 z-20">
+                        <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          Coming Soon
+                        </div>
+                      </div>
+                    )}
+
                     {/* Gradient overlay on hover */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl"
-                      style={{
-                        background: `linear-gradient(135deg, ${getAccentColor(accentColor, product.gradient.from)}, ${getAccentColor(accentColor, product.gradient.to)})`
-                      }}
-                    />
+                    {!product.disabled && (
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-2xl"
+                        style={{
+                          background: `linear-gradient(135deg, ${getAccentColor(accentColor, product.gradient.from)}, ${getAccentColor(accentColor, product.gradient.to)})`
+                        }}
+                      />
+                    )}
 
                     {/* Icon */}
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300"
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 shadow-lg transition-transform duration-300 ${!product.disabled && 'group-hover:scale-110'}`}
                       style={{
                         background: `linear-gradient(135deg, ${getAccentColor(accentColor, product.gradient.from)}, ${getAccentColor(accentColor, product.gradient.to)})`
                       }}
@@ -151,7 +186,7 @@ const HomePageComponent: React.FC = () => {
                       >
                         {product.subtitle}
                       </p>
-                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50 mb-3 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
+                      <h3 className={`text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50 mb-3 transition-colors duration-200 ${!product.disabled && 'group-hover:text-accent-600 dark:group-hover:text-accent-400'}`}>
                         {product.title}
                       </h3>
                       <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
@@ -159,13 +194,15 @@ const HomePageComponent: React.FC = () => {
                       </p>
 
                       {/* CTA */}
-                      <div
-                        className="inline-flex items-center gap-2 font-semibold transition-all duration-200 group-hover:gap-3"
-                        style={{ color: getAccentColor(accentColor, '600') }}
-                      >
-                        Get Started
-                        <FiArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                      </div>
+                      {!product.disabled && (
+                        <div
+                          className="inline-flex items-center gap-2 font-semibold transition-all duration-200 group-hover:gap-3"
+                          style={{ color: getAccentColor(accentColor, '600') }}
+                        >
+                          Get Started
+                          <FiArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                        </div>
+                      )}
                     </div>
                   </button>
                 )
@@ -179,7 +216,7 @@ const HomePageComponent: React.FC = () => {
       <footer className="border-t border-slate-200/50 dark:border-slate-700/50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            © {new Date().getFullYear()} EVR. AI-powered insights for your conversations.
+            © {new Date().getFullYear()} Marmalade. AI-powered insights for your conversations.
           </p>
         </div>
       </footer>
