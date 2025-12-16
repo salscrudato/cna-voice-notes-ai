@@ -24,7 +24,7 @@ const SectionLoader: React.FC = () => (
   </div>
 )
 
-const LandingPageComponent: React.FC = () => {
+const ChatLandingPageComponent: React.FC = () => {
 
   return (
     <ErrorBoundary>
@@ -65,4 +65,4 @@ const LandingPageComponent: React.FC = () => {
   )
 }
 
-export const LandingPage = memo(LandingPageComponent)
+export const ChatLandingPage = memo(ChatLandingPageComponent)

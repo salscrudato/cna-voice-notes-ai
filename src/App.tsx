@@ -5,7 +5,10 @@ import { SkipToContent } from './components/SkipToContent'
 import { LayoutShell } from './components/LayoutShell'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { LandingPage } from './pages/LandingPage'
+import { HomePage } from './pages/HomePage'
+import { ChatLandingPage } from './pages/ChatLandingPage'
+import { InsightsLandingPage } from './pages/InsightsLandingPage'
+import { ReportingPage } from './pages/ReportingPage'
 import { SupportPage } from './pages/SupportPage'
 import { UploadPage } from './pages/UploadPage'
 import { useWebVitals } from './hooks/useWebVitals'
@@ -36,7 +39,10 @@ function App() {
             <SkipToContent />
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/chat-landing" element={<ChatLandingPage />} />
+                <Route path="/insights" element={<InsightsLandingPage />} />
+                <Route path="/reporting" element={<ReportingPage />} />
                 <Route path="/chat" element={<MainChatPage />} />
                 <Route path="/upload" element={<UploadPage />} />
                 <Route path="/support" element={<SupportPage />} />

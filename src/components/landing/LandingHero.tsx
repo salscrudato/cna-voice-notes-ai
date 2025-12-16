@@ -50,7 +50,7 @@ const LandingHeroComponent: React.FC = () => {
             {/* Headline */}
             <div className="space-y-3">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
-                Marmalade turns your voice notes into
+                EVR turns your voice notes into
                 <span
                   className="block font-bold mt-2"
                   style={{
@@ -134,10 +134,10 @@ const LandingHeroComponent: React.FC = () => {
                       boxShadow: `0 0 0 0 ${getAccentColor(accentColor, '500')}33`
                     }}
                   >
-                    M
+                    E
                   </div>
                   <div className="text-sm">
-                    <p className="font-semibold text-slate-900 dark:text-slate-50">Marmalade</p>
+                    <p className="font-semibold text-slate-900 dark:text-slate-50">EVR</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Ask about your notes</p>
                   </div>
                 </div>

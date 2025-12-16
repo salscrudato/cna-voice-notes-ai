@@ -23,7 +23,7 @@ const LandingHeaderComponent: React.FC = () => {
             style={{
               '--tw-ring-color': getAccentColor(accentColor, '500')
             } as React.CSSProperties}
-            aria-label="Marmalade home"
+            aria-label="EVR home"
             type="button"
           >
             <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-200 border group-hover:scale-110"
@@ -34,7 +34,7 @@ const LandingHeaderComponent: React.FC = () => {
             >
               <HiOutlineMicrophone className="w-5 h-5 text-white" aria-hidden="true" />
             </div>
-            <span className="font-bold text-base text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">Marmalade</span>
+            <span className="font-bold text-base text-slate-900 dark:text-slate-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">EVR Chat</span>
           </button>
 
           {/* Theme Selector */}
