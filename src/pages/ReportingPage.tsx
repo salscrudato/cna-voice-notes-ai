@@ -1,6 +1,6 @@
 import React, { memo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowLeft, FiPlus, FiCheck, FiTrash2, FiEdit2 } from '../utils/icons'
+import { FiArrowLeft, FiPlus } from '../utils/icons'
 import { ThemeSelector } from '../components/ThemeSelector'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
@@ -41,10 +41,6 @@ const ReportingPageComponent: React.FC = () => {
       }
       return action
     }))
-  }, [])
-
-  const deleteAction = useCallback((id: string) => {
-    setActions(prev => prev.filter(action => action.id !== id))
   }, [])
 
   const getStatusColor = (status: ActionItem['status']) => {
@@ -135,7 +131,6 @@ const ReportingPageComponent: React.FC = () => {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Source</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -151,13 +146,6 @@ const ReportingPageComponent: React.FC = () => {
                       </button>
                     </td>
                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">{action.source}</td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"><FiEdit2 className="w-4 h-4" /></button>
-                        <button onClick={() => deleteAction(action.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><FiTrash2 className="w-4 h-4" /></button>
-                        <button onClick={() => toggleStatus(action.id)} className="p-1.5 rounded-lg text-slate-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"><FiCheck className="w-4 h-4" /></button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
