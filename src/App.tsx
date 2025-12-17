@@ -6,7 +6,6 @@ import { LayoutShell } from './components/LayoutShell'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { HomePage } from './pages/HomePage'
-import { ChatLandingPage } from './pages/ChatLandingPage'
 import { InsightsLandingPage } from './pages/InsightsLandingPage'
 import { ReportingPage } from './pages/ReportingPage'
 import { SupportPage } from './pages/SupportPage'
@@ -40,7 +39,6 @@ function App() {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/chat-landing" element={<ChatLandingPage />} />
                 <Route path="/insights" element={<InsightsLandingPage />} />
                 <Route path="/reporting" element={<ReportingPage />} />
                 <Route path="/chat" element={<MainChatPage />} />

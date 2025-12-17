@@ -28,7 +28,7 @@ const HomePageComponent: React.FC = () => {
       subtitle: 'Conversational AI',
       description: 'Turn your voice notes into actionable insights. Ask questions about your calls and get intelligent answers.',
       icon: FiMessageCircle,
-      route: '/chat-landing',
+      route: '/chat',
       gradient: { from: '500', to: '700' }
     },
     {
