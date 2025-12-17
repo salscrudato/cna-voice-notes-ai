@@ -1,6 +1,6 @@
 import React, { memo, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiArrowLeft, FiPlus } from '../utils/icons'
+import { FiArrowLeft, FiDownload } from '../utils/icons'
 import { ThemeSelector } from '../components/ThemeSelector'
 import { useTheme } from '../hooks/useTheme'
 import { getAccentColor } from '../utils/accentColors'
@@ -27,9 +27,16 @@ const ReportingPageComponent: React.FC = () => {
   const navigate = useNavigate()
   const { accentColor } = useTheme()
   const [actions, setActions] = useState<ActionItem[]>(initialActions)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all')
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
 
-  const filteredActions = actions.filter(action => filter === 'all' || action.status === filter)
+  const uniqueAssignees = Array.from(new Set(actions.map(a => a.assignee))).sort()
+
+  const filteredActions = actions.filter(action => {
+    const statusMatch = statusFilter === 'all' || action.status === statusFilter
+    const assigneeMatch = assigneeFilter === 'all' || action.assignee === assigneeFilter
+    return statusMatch && assigneeMatch
+  })
 
   const toggleStatus = useCallback((id: string) => {
     setActions(prev => prev.map(action => {
@@ -58,6 +65,35 @@ const ReportingPageComponent: React.FC = () => {
       default: return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
     }
   }
+
+  const exportToExcel = useCallback(() => {
+    const headers = ['Action', 'Assignee', 'Due Date', 'Priority', 'Status', 'Source']
+    const rows = filteredActions.map(action => [
+      action.title,
+      action.assignee,
+      action.dueDate,
+      action.priority,
+      action.status.replace('-', ' '),
+      action.source
+    ])
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `action-tracker-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }, [filteredActions])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-white/95 to-slate-50/50 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-900/50 flex flex-col transition-colors duration-300">
@@ -96,27 +132,44 @@ const ReportingPageComponent: React.FC = () => {
         </div>
 
         {/* Filters & Actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col gap-4 mb-6">
+          {/* Status Filter */}
           <div className="flex gap-2 flex-wrap">
             {(['all', 'pending', 'in-progress', 'completed'] as const).map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${filter === status
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${statusFilter === status
                   ? 'text-white shadow-md'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
-                style={filter === status ? { background: `linear-gradient(135deg, ${getAccentColor(accentColor, '500')}, ${getAccentColor(accentColor, '700')})` } : {}}
+                style={statusFilter === status ? { background: `linear-gradient(135deg, ${getAccentColor(accentColor, '500')}, ${getAccentColor(accentColor, '700')})` } : {}}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
               </button>
             ))}
           </div>
-          <button
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-            style={{ background: `linear-gradient(135deg, ${getAccentColor(accentColor, '500')}, ${getAccentColor(accentColor, '700')})` }}
-          >
-            <FiPlus className="w-4 h-4" /> Add Action
-          </button>
+
+          {/* Assignee Filter & Export */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-50 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-950"
+              style={{ '--tw-ring-color': getAccentColor(accentColor, '500') } as React.CSSProperties}
+            >
+              <option value="all">All Assignees</option>
+              {uniqueAssignees.map((assignee) => (
+                <option key={assignee} value={assignee}>{assignee}</option>
+              ))}
+            </select>
+            <button
+              onClick={exportToExcel}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
+              style={{ background: `linear-gradient(135deg, ${getAccentColor(accentColor, '500')}, ${getAccentColor(accentColor, '700')})` }}
+            >
+              <FiDownload className="w-4 h-4" /> Export to CSV
+            </button>
+          </div>
         </div>
 
         {/* Table */}
